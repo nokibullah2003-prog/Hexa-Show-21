@@ -1,0 +1,557 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Hexa Show</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg: #020203; --accent: #22d3ee; --accent2: #a78bfa; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: white;
+      margin: 0;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 100vh;
+    }
+    h1, h2, h3, .font-display { font-family: 'Syne', sans-serif; }
+    .glass {
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .tab-content { display: none; height: calc(100vh - 140px); overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: rgba(34,211,238,0.2) transparent; }
+    .tab-content.active { display: block; }
+    .tab-content::-webkit-scrollbar { width: 3px; }
+    .tab-content::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.2); border-radius: 10px; }
+    .nav-btn { color: rgba(255,255,255,0.25); transition: color 0.2s; }
+    .nav-btn.active { color: var(--accent); }
+    input, textarea { appearance: none; -webkit-appearance: none; font-family: 'DM Mono', monospace; }
+    @keyframes pulse-glow { 0%,100%{opacity:0.4} 50%{opacity:1} }
+    .glow-pulse { animation: pulse-glow 2s infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 1.2s linear infinite; }
+    @keyframes fade-in { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    .fade-in { animation: fade-in 0.4s ease forwards; }
+    @keyframes hex-rotate { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+    .hex-spin { animation: hex-rotate 3s linear infinite; }
+    .btn-press { transition: transform 0.1s; }
+    .btn-press:active { transform: scale(0.95); }
+    /* Grid bg pattern */
+    .grid-bg {
+      background-image: linear-gradient(rgba(34,211,238,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .post-card { animation: fade-in 0.4s ease both; }
+    /* Desktop layout */
+    @media (min-width: 768px) {
+      #app-shell { max-width: 480px; border-left: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); }
+    }
+    .hex-badge {
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    }
+    #toast {
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="grid-bg">
+
+<!-- ═══════════════════════════════════════════
+     TOAST NOTIFICATION
+═══════════════════════════════════════════ -->
+<div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest opacity-0 hidden"></div>
+
+<!-- ═══════════════════════════════════════════
+     LOADING SCREEN
+═══════════════════════════════════════════ -->
+<div id="loading-screen" class="fixed inset-0 bg-[#020203] z-[100] flex flex-col items-center justify-center gap-6">
+  <div class="relative w-20 h-20">
+    <svg viewBox="0 0 80 80" class="w-full h-full hex-spin text-cyan-400" fill="none" stroke="currentColor" stroke-width="1.5">
+      <polygon points="40,5 73,22.5 73,57.5 40,75 7,57.5 7,22.5"/>
+    </svg>
+    <div class="absolute inset-0 flex items-center justify-center">
+      <svg viewBox="0 0 24 24" class="w-7 h-7 text-cyan-400 fill-cyan-400/20" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    </div>
+  </div>
+  <div class="text-center">
+    <p class="text-2xl font-display font-black italic tracking-tighter">HEXA<span class="text-cyan-400">SHOW</span></p>
+    <p class="text-[9px] text-cyan-400/50 uppercase tracking-[0.5em] mt-2 glow-pulse">Initializing Grid...</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     AUTH PORTAL
+═══════════════════════════════════════════ -->
+<div id="auth-portal" class="fixed inset-0 bg-[#020203] grid-bg z-50 hidden items-center justify-center p-6 flex">
+  <div class="glass w-full max-w-sm p-8 rounded-[2.5rem] text-center">
+    <div class="w-20 h-20 bg-cyan-500/10 border border-cyan-400/20 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+      <svg viewBox="0 0 24 24" class="w-10 h-10 text-cyan-400" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <h1 id="auth-title" class="text-3xl font-display font-black italic tracking-tighter uppercase mb-1">NEW <span class="text-cyan-400">ID</span></h1>
+    <p class="text-[9px] text-white/30 font-bold tracking-[0.3em] uppercase mb-8">Personalize your node</p>
+
+    <div id="auth-msg" class="hidden mb-4 p-3 rounded-xl text-[10px] font-bold uppercase tracking-widest border"></div>
+
+    <div class="space-y-3">
+      <input type="text" id="auth-username" placeholder="USERNAME" maxlength="20"
+        class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm outline-none focus:border-cyan-400/50 transition-colors" />
+      <input type="password" id="auth-password" placeholder="PASSWORD" minlength="6"
+        class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm outline-none focus:border-cyan-400/50 transition-colors" />
+      <button id="auth-submit" onclick="handleAuth()"
+        class="btn-press w-full bg-cyan-400 text-black font-display font-black py-4 rounded-2xl text-xs uppercase tracking-widest mt-2">
+        INITIALIZE
+      </button>
+    </div>
+    <button id="auth-toggle" onclick="toggleAuthMode()"
+      class="mt-5 text-[9px] text-white/25 font-bold uppercase tracking-widest hover:text-white/50 transition-colors">
+      Already have an ID? Login
+    </button>
+    <p class="mt-4 text-[8px] text-white/15 uppercase tracking-widest">Free · No credit card · Real accounts</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN APP
+═══════════════════════════════════════════ -->
+<div id="app-shell" class="mx-auto h-screen flex flex-col bg-[#050505] hidden">
+
+  <!-- Header -->
+  <header class="h-16 px-5 flex justify-between items-center bg-black/60 backdrop-blur-xl border-b border-white/5 flex-shrink-0">
+    <div class="flex items-center gap-2">
+      <svg viewBox="0 0 24 24" class="w-5 h-5 text-cyan-400 fill-cyan-400/15" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 22,7 22,17 12,22 2,17 2,7"/></svg>
+      <h1 class="text-xl font-display font-black italic tracking-tighter uppercase">HEXA<span class="text-cyan-400">SHOW</span></h1>
+    </div>
+    <div class="flex items-center gap-2">
+      <span id="header-user" class="text-[10px] text-cyan-400/60 uppercase tracking-widest font-bold"></span>
+      <button id="logout-btn" onclick="handleLogout()" class="text-white/20 hover:text-red-400 transition-colors p-2 rounded-xl">
+        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ─── TAB: HOME ─── -->
+  <div id="tab-home" class="tab-content active p-5 space-y-4 pb-8">
+    <div class="glass p-5 rounded-[2rem] border border-cyan-400/10 relative overflow-hidden">
+      <div class="absolute -right-6 -top-6 w-24 h-24 opacity-5">
+        <svg viewBox="0 0 80 80" fill="currentColor" class="text-cyan-400 w-full h-full"><polygon points="40,5 73,22.5 73,57.5 40,75 7,57.5 7,22.5"/></svg>
+      </div>
+      <p class="text-[8px] font-bold text-cyan-400 uppercase tracking-[0.3em] mb-2 flex items-center gap-2">
+        <svg viewBox="0 0 24 24" class="w-3 h-3 fill-cyan-400" stroke="none"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        LIVE FEED
+      </p>
+      <p id="online-count" class="text-xs text-white/50">Loading feed...</p>
+    </div>
+
+    <div id="feed-container" class="space-y-3 pb-4">
+      <div class="glass p-5 rounded-[2rem] text-center text-white/20 text-xs">Connecting to grid...</div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: DISCOVER ─── -->
+  <div id="tab-discover" class="tab-content p-5 space-y-5 pb-8">
+    <h2 class="text-2xl font-display font-black italic uppercase tracking-tighter">GRID <span class="text-cyan-400">EXPLORER</span></h2>
+    <div class="relative">
+      <svg viewBox="0 0 24 24" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="search-input" placeholder="Search posts..." oninput="handleSearch()"
+        class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-5 text-sm outline-none focus:border-cyan-400/50 transition-colors" />
+    </div>
+    <div id="search-results" class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="glass p-5 rounded-[2rem] text-center cursor-pointer hover:border-cyan-400/30 transition-colors border border-transparent" onclick="filterFeed('hexa')">
+          <p class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest"># HEXA</p>
+          <p class="text-[9px] text-white/30 mt-1">Trending</p>
+        </div>
+        <div class="glass p-5 rounded-[2rem] text-center cursor-pointer hover:border-purple-400/30 transition-colors border border-transparent" onclick="filterFeed('show')">
+          <p class="text-[10px] font-bold text-purple-400 uppercase tracking-widest"># SHOW</p>
+          <p class="text-[9px] text-white/30 mt-1">Popular</p>
+        </div>
+      </div>
+      <div id="discover-feed" class="space-y-3 mt-4"></div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: POST ─── -->
+  <div id="tab-post" class="tab-content p-5 space-y-5 pb-8">
+    <div class="flex justify-between items-end">
+      <h2 class="text-2xl font-display font-black italic uppercase tracking-tighter">POST <span class="text-cyan-400">DATA</span></h2>
+      <span id="char-count" class="text-[10px] text-white/20">0 / 280</span>
+    </div>
+    <textarea id="post-input" placeholder="What's on your grid today?" maxlength="280" oninput="updateCharCount()"
+      class="w-full bg-white/5 border border-white/10 rounded-[2rem] p-6 text-sm italic focus:border-cyan-400/50 outline-none h-48 resize-none transition-all leading-relaxed"></textarea>
+    <button id="transmit-btn" onclick="handlePost()"
+      class="btn-press w-full bg-cyan-400 text-black font-display font-black py-4 rounded-2xl text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+      <svg viewBox="0 0 24 24" class="w-4 h-4 fill-black" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      TRANSMIT
+    </button>
+  </div>
+
+  <!-- ─── TAB: PROFILE ─── -->
+  <div id="tab-profile" class="tab-content p-5 space-y-6 pb-8">
+    <div class="text-center pt-6">
+      <div id="profile-avatar-hex" class="w-28 h-28 mx-auto mb-5 relative flex items-center justify-center">
+        <svg viewBox="0 0 120 120" class="absolute inset-0 w-full h-full text-cyan-400/20" fill="currentColor" stroke="rgba(34,211,238,0.3)" stroke-width="1.5"><polygon points="60,8 108,34 108,86 60,112 12,86 12,34"/></svg>
+        <span id="profile-initials" class="text-3xl font-display font-black text-cyan-400 relative z-10">??</span>
+      </div>
+      <h3 id="profile-user" class="text-3xl font-display font-black italic tracking-tighter uppercase text-white">@USER</h3>
+      <p class="text-[10px] text-white/30 font-bold mt-1 uppercase tracking-widest">Hexa Grid Citizen</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div class="glass p-5 rounded-[2.5rem] text-center">
+        <p class="text-[9px] font-bold text-white/20 mb-1 uppercase tracking-widest">Posts</p>
+        <p id="stat-shows" class="text-3xl font-display font-black text-cyan-400">0</p>
+      </div>
+      <div class="glass p-5 rounded-[2.5rem] text-center">
+        <p class="text-[9px] font-bold text-white/20 mb-1 uppercase tracking-widest">Member Since</p>
+        <p id="stat-joined" class="text-sm font-display font-black text-purple-400 pt-2">—</p>
+      </div>
+    </div>
+
+    <div class="space-y-3">
+      <h4 class="text-[9px] font-bold text-white/20 uppercase tracking-[0.4em] px-2">My Posts</h4>
+      <div id="my-posts" class="space-y-3">
+        <div class="glass p-4 rounded-[2rem] text-center text-white/20 text-xs">No posts yet. Start transmitting!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="h-[72px] bg-black/80 backdrop-blur-2xl border-t border-white/5 flex items-center justify-around px-4 pb-2 flex-shrink-0">
+    <button onclick="nav('home')" data-tab="home" class="nav-btn active flex flex-col items-center gap-1 p-2">
+      <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="text-[8px] uppercase tracking-widest">Home</span>
+    </button>
+    <button onclick="nav('discover')" data-tab="discover" class="nav-btn flex flex-col items-center gap-1 p-2">
+      <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span class="text-[8px] uppercase tracking-widest">Explore</span>
+    </button>
+    <button onclick="nav('post')" class="relative -top-4 bg-cyan-400 text-black p-4 rounded-2xl btn-press shadow-[0_0_24px_rgba(34,211,238,0.4)]">
+      <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+    <button onclick="nav('messages')" data-tab="messages" class="nav-btn flex flex-col items-center gap-1 p-2">
+      <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="text-[8px] uppercase tracking-widest">Chat</span>
+    </button>
+    <button onclick="nav('profile')" data-tab="profile" class="nav-btn flex flex-col items-center gap-1 p-2">
+      <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="text-[8px] uppercase tracking-widest">Profile</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SUPABASE CONFIG — EDIT THESE TWO LINES
+═══════════════════════════════════════════ -->
+<script>
+  // ⚠️  PASTE YOUR SUPABASE VALUES HERE (free from supabase.com)
+  const SUPABASE_URL = 'https://hlfpgwxskcknzafiqrdv.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhsZnBnd3hza2NrbnphZmlxcmR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MDM1OTcsImV4cCI6MjA5MDQ3OTU5N30.Va2A6sazsLVv6bCLgdlrGvxPxsWwvTpJd2TF1uXdl5Q';
+</script>
+
+<!-- ═══════════════════════════════════════════
+     APP LOGIC
+═══════════════════════════════════════════ -->
+<script>
+  const { createClient } = supabase;
+  let sb, currentUser = null, allPosts = [], authMode = 'signup';
+
+  // ─── INIT ───
+  window.onload = async () => {
+    if (!SUPABASE_URL || SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+      showSetupGuide();
+      return;
+    }
+    sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      currentUser = session.user;
+      await startApp();
+    } else {
+      showAuth();
+    }
+  };
+
+  // ─── SETUP GUIDE (before Supabase configured) ───
+  function showSetupGuide() {
+    document.getElementById('loading-screen').innerHTML = `
+      <div class="max-w-sm mx-auto p-6 text-center space-y-6">
+        <div class="text-4xl font-display font-black italic text-cyan-400">HEXA<span class="text-white">SHOW</span></div>
+        <div class="glass p-6 rounded-[2rem] text-left space-y-4 text-sm">
+          <p class="text-cyan-400 font-bold uppercase tracking-widest text-xs">Setup Required (5 mins)</p>
+          <ol class="space-y-3 text-white/70 text-xs leading-relaxed list-decimal list-inside">
+            <li>Go to <span class="text-cyan-400">supabase.com</span> → Create free account</li>
+            <li>Click <span class="text-white">"New Project"</span> → name it "hexashow"</li>
+            <li>Go to <span class="text-white">Settings → API</span> → copy your URL and anon key</li>
+            <li>Open this HTML file and replace <span class="text-cyan-400">https://hlfpgwxskcknzafiqrdv.supabase.co</span> and <span class="text-cyan-400">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhsZnBnd3hza2NrbnphZmlxcmR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MDM1OTcsImV4cCI6MjA5MDQ3OTU5N30.Va2A6sazsLVv6bCLgdlrGvxPxsWwvTpJd2TF1uXdl5Q</span></li>
+            <li>Go to <span class="text-white">SQL Editor</span> in Supabase and run the SQL in <span class="text-cyan-400">setup.sql</span></li>
+            <li>Deploy to <span class="text-white">vercel.com</span> for your free public link!</li>
+          </ol>
+        </div>
+        <p class="text-white/20 text-[10px] uppercase tracking-widest">100% Free · No Credit Card</p>
+      </div>
+    `;
+  }
+
+  // ─── TOAST ───
+  function toast(msg, type = 'info') {
+    const el = document.getElementById('toast');
+    el.className = `fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest`;
+    if (type === 'error') el.className += ' bg-red-500/20 border border-red-500/30 text-red-400';
+    else if (type === 'success') el.className += ' bg-cyan-500/20 border border-cyan-400/30 text-cyan-400';
+    else el.className += ' bg-white/10 border border-white/20 text-white';
+    el.innerText = msg;
+    el.style.opacity = '1';
+    el.classList.remove('hidden');
+    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.classList.add('hidden'), 300); }, 2500);
+  }
+
+  // ─── AUTH TOGGLE ───
+  function toggleAuthMode() {
+    authMode = authMode === 'signup' ? 'login' : 'signup';
+    document.getElementById('auth-title').innerHTML = authMode === 'signup'
+      ? 'NEW <span class="text-cyan-400">ID</span>'
+      : 'GRID <span class="text-cyan-400">LINK</span>';
+    document.getElementById('auth-submit').innerText = authMode === 'signup' ? 'INITIALIZE' : 'AUTHENTICATE';
+    document.getElementById('auth-toggle').innerText = authMode === 'signup'
+      ? 'Already have an ID? Login'
+      : 'New here? Create account';
+    document.getElementById('auth-msg').className = 'hidden';
+  }
+
+  function showAuth() {
+    document.getElementById('loading-screen').classList.add('hidden');
+    document.getElementById('auth-portal').classList.remove('hidden');
+  }
+
+  // ─── HANDLE AUTH ───
+  async function handleAuth() {
+    const username = document.getElementById('auth-username').value.toLowerCase().trim();
+    const password = document.getElementById('auth-password').value;
+    const btn = document.getElementById('auth-submit');
+    const msg = document.getElementById('auth-msg');
+
+    if (!username || username.length < 3) { showMsg(msg, 'Username must be at least 3 chars', 'error'); return; }
+    if (!password || password.length < 6) { showMsg(msg, 'Password must be at least 6 chars', 'error'); return; }
+    if (!/^[a-z0-9_]+$/.test(username)) { showMsg(msg, 'Only letters, numbers, underscores', 'error'); return; }
+
+    btn.disabled = true;
+    btn.innerText = 'PROCESSING...';
+
+    // Use email format for Supabase auth (username@hexashow.app)
+    const fakeEmail = `${username}@hexashow.app`;
+
+    try {
+      if (authMode === 'signup') {
+        // Check username taken
+        const { data: existing } = await sb.from('profiles').select('username').eq('username', username).single();
+        if (existing) { showMsg(msg, 'Username already taken', 'error'); btn.disabled = false; btn.innerText = 'INITIALIZE'; return; }
+
+        const { data, error } = await sb.auth.signUp({ email: fakeEmail, password });
+        if (error) throw error;
+        // Create profile
+        await sb.from('profiles').insert({ id: data.user.id, username, created_at: new Date().toISOString() });
+        currentUser = data.user;
+        await startApp();
+      } else {
+        const { data, error } = await sb.auth.signInWithPassword({ email: fakeEmail, password });
+        if (error) throw error;
+        currentUser = data.user;
+        await startApp();
+      }
+    } catch (err) {
+      let errMsg = err.message || 'Something went wrong';
+      if (errMsg.includes('Invalid login')) errMsg = 'Wrong username or password';
+      if (errMsg.includes('already registered')) errMsg = 'Username taken — try login';
+      showMsg(msg, errMsg, 'error');
+      btn.disabled = false;
+      btn.innerText = authMode === 'signup' ? 'INITIALIZE' : 'AUTHENTICATE';
+    }
+  }
+
+  function showMsg(el, text, type) {
+    el.innerText = text.toUpperCase();
+    el.className = type === 'error'
+      ? 'mb-4 p-3 rounded-xl text-[10px] font-bold uppercase tracking-widest border bg-red-500/10 text-red-400 border-red-500/20 block'
+      : 'mb-4 p-3 rounded-xl text-[10px] font-bold uppercase tracking-widest border bg-cyan-500/10 text-cyan-400 border-cyan-400/20 block';
+  }
+
+  // ─── START APP ───
+  async function startApp() {
+    document.getElementById('loading-screen').classList.add('hidden');
+    document.getElementById('auth-portal').classList.add('hidden');
+    document.getElementById('app-shell').classList.remove('hidden');
+
+    // Get profile
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+    const username = profile?.username || currentUser.email?.split('@')[0] || 'user';
+
+    document.getElementById('header-user').innerText = `@${username}`;
+    document.getElementById('profile-user').innerText = `@${username}`;
+    document.getElementById('profile-initials').innerText = username[0].toUpperCase();
+    document.getElementById('stat-joined').innerText = profile?.created_at
+      ? new Date(profile.created_at).toLocaleDateString('en', { month: 'short', year: '2-digit' })
+      : '—';
+
+    await loadFeed();
+    loadMyPosts(username);
+    subscribeToFeed();
+  }
+
+  // ─── LOAD FEED ───
+  async function loadFeed() {
+    const { data: posts, error } = await sb.from('posts').select('*').order('created_at', { ascending: false }).limit(50);
+    if (error) { console.error(error); return; }
+    allPosts = posts || [];
+    renderFeed(allPosts, 'feed-container');
+    document.getElementById('online-count').innerText = `${allPosts.length} transmission${allPosts.length !== 1 ? 's' : ''} on the grid`;
+  }
+
+  function renderFeed(posts, containerId) {
+    const container = document.getElementById(containerId);
+    if (!posts.length) {
+      container.innerHTML = `<div class="glass p-6 rounded-[2rem] text-center text-white/20 text-xs">No transmissions yet. Be the first!</div>`;
+      return;
+    }
+    container.innerHTML = posts.map((p, i) => `
+      <div class="glass post-card p-5 rounded-[2rem] space-y-3 border border-white/5 hover:border-cyan-400/15 transition-colors" style="animation-delay:${i * 0.05}s">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 text-xs font-display font-black flex-shrink-0">
+            ${(p.username || '?')[0].toUpperCase()}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-display font-black italic truncate">@${p.username || 'unknown'}</p>
+            <p class="text-[9px] text-white/25 uppercase tracking-widest">${timeAgo(p.created_at)}</p>
+          </div>
+          <div class="w-2 h-2 rounded-full bg-cyan-400/30 flex-shrink-0"></div>
+        </div>
+        <p class="text-sm text-white/75 leading-relaxed">${escapeHtml(p.content)}</p>
+        <div class="flex items-center gap-4 pt-1">
+          <button onclick="likePost('${p.id}', this)" class="flex items-center gap-1.5 text-white/20 hover:text-pink-400 transition-colors text-[10px] font-bold btn-press">
+            <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            ${p.likes || 0}
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ─── REALTIME FEED ───
+  function subscribeToFeed() {
+    sb.channel('posts').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, payload => {
+      allPosts.unshift(payload.new);
+      renderFeed(allPosts, 'feed-container');
+      document.getElementById('online-count').innerText = `${allPosts.length} transmissions on the grid`;
+    }).subscribe();
+  }
+
+  // ─── POST ───
+  async function handlePost() {
+    const content = document.getElementById('post-input').value.trim();
+    if (!content) { toast('Write something first!', 'error'); return; }
+    const btn = document.getElementById('transmit-btn');
+    btn.disabled = true; btn.innerText = 'TRANSMITTING...';
+
+    const { data: profile } = await sb.from('profiles').select('username').eq('id', currentUser.id).single();
+    const { error } = await sb.from('posts').insert({ user_id: currentUser.id, username: profile.username, content, likes: 0 });
+
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" class="w-4 h-4 fill-black" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> TRANSMIT`;
+    if (error) { toast('Transmission failed', 'error'); return; }
+
+    document.getElementById('post-input').value = '';
+    document.getElementById('char-count').innerText = '0 / 280';
+    toast('Transmitted!', 'success');
+    nav('home');
+    loadMyPosts(profile.username);
+  }
+
+  // ─── LIKE ───
+  async function likePost(postId, btn) {
+    const post = allPosts.find(p => p.id === postId);
+    if (!post) return;
+    post.likes = (post.likes || 0) + 1;
+    btn.querySelector('svg').style.fill = '#f472b6';
+    btn.classList.add('text-pink-400');
+    await sb.from('posts').update({ likes: post.likes }).eq('id', postId);
+    btn.innerHTML = `<svg viewBox="0 0 24 24" class="w-3.5 h-3.5 fill-pink-400" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> ${post.likes}`;
+  }
+
+  // ─── MY POSTS ───
+  async function loadMyPosts(username) {
+    const { data: posts } = await sb.from('posts').select('*').eq('username', username).order('created_at', { ascending: false });
+    document.getElementById('stat-shows').innerText = posts?.length || 0;
+    if (!posts?.length) return;
+    document.getElementById('my-posts').innerHTML = posts.map(p => `
+      <div class="glass p-4 rounded-[1.5rem] space-y-2 text-sm border border-white/5">
+        <p class="text-white/70 leading-relaxed text-xs">${escapeHtml(p.content)}</p>
+        <p class="text-[9px] text-white/25 uppercase tracking-widest">${timeAgo(p.created_at)} · ${p.likes || 0} likes</p>
+      </div>
+    `).join('');
+  }
+
+  // ─── SEARCH ───
+  function handleSearch() {
+    const q = document.getElementById('search-input').value.toLowerCase().trim();
+    const filtered = q ? allPosts.filter(p => p.content?.toLowerCase().includes(q) || p.username?.toLowerCase().includes(q)) : [];
+    renderFeed(filtered, 'discover-feed');
+  }
+
+  function filterFeed(tag) {
+    const filtered = allPosts.filter(p => p.content?.toLowerCase().includes(tag));
+    renderFeed(filtered, 'discover-feed');
+    document.getElementById('search-input').value = tag;
+  }
+
+  // ─── NAV ───
+  window.nav = (tabId) => {
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const tab = document.getElementById(`tab-${tabId}`);
+    if (tab) tab.classList.add('active');
+    const btn = document.querySelector(`[data-tab="${tabId}"]`);
+    if (btn) btn.classList.add('active');
+  };
+
+  // ─── LOGOUT ───
+  async function handleLogout() {
+    await sb.auth.signOut();
+    location.reload();
+  }
+
+  // ─── HELPERS ───
+  function updateCharCount() {
+    const len = document.getElementById('post-input').value.length;
+    const el = document.getElementById('char-count');
+    el.innerText = `${len} / 280`;
+    el.className = len > 250 ? 'text-[10px] text-red-400' : 'text-[10px] text-white/20';
+  }
+
+  function escapeHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function timeAgo(ts) {
+    if (!ts) return '';
+    const diff = (Date.now() - new Date(ts)) / 1000;
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+    return `${Math.floor(diff/86400)}d ago`;
+  }
+
+  // Enter key on auth inputs
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !document.getElementById('auth-portal').classList.contains('hidden')) handleAuth();
+  });
+</script>
+</body>
+</html>
