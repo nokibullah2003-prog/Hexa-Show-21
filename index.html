@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -54,6 +53,8 @@
     /* CHAT */
     #chat-overlay { display:none; position:fixed; inset:0; z-index:160; background:#050505; flex-direction:column; }
     #chat-overlay.open { display:flex; }
+    .notif-dot { width:8px;height:8px;background:#f472b6;border-radius:50%;position:absolute;top:2px;right:2px;animation:pulse-glow 1.5s infinite; }
+    .notif-item { animation: fade-in 0.3s ease both; }
     .chat-bubble-me { background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.2); border-radius:1.2rem 1.2rem 0.3rem 1.2rem; padding:0.6rem 1rem; max-width:75%; align-self:flex-end; }
     .chat-bubble-them { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:1.2rem 1.2rem 1.2rem 0.3rem; padding:0.6rem 1rem; max-width:75%; align-self:flex-start; }
     #chat-messages { flex:1; overflow-y:auto; padding:1rem; display:flex; flex-direction:column; gap:0.5rem; scrollbar-width:none; }
@@ -155,7 +156,7 @@
       <p class="text-[9px] text-white/30 uppercase tracking-widest">Direct Message</p>
     </div>
   </header>
-  <div id="chat-messages"></div>
+  <div id="chat-messages" style="flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:0.5rem;scrollbar-width:none;background:#050505;min-height:0;"></div>
   <div class="flex gap-2 p-4 bg-black/60 backdrop-blur-xl border-t border-white/5 flex-shrink-0">
     <input type="text" id="chat-input" placeholder="Type a message..." maxlength="500"
       class="flex-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-sm outline-none focus:border-cyan-400/50 transition-colors"
@@ -307,6 +308,14 @@
     </div>
   </div>
 
+  <!-- NOTIFICATIONS -->
+  <div id="tab-notifications" class="tab-content p-5 space-y-4 pb-8">
+    <h2 class="text-2xl font-display font-black italic uppercase tracking-tighter">NOTIF <span class="text-cyan-400">GRID</span></h2>
+    <div id="notif-list" class="space-y-3">
+      <div class="glass p-4 rounded-2xl text-center text-white/20 text-xs">Loading...</div>
+    </div>
+  </div>
+
   <!-- Bottom Nav -->
   <nav class="h-[72px] bg-black/80 backdrop-blur-2xl border-t border-white/5 flex items-center justify-around px-2 pb-2 flex-shrink-0">
     <button onclick="nav('home')" data-tab="home" class="nav-btn active flex flex-col items-center gap-1 p-2">
@@ -320,9 +329,12 @@
     <button onclick="nav('post')" class="relative -top-4 bg-cyan-400 text-black p-4 rounded-2xl btn-press shadow-[0_0_24px_rgba(34,211,238,0.4)]">
       <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </button>
-    <button onclick="nav('friends')" data-tab="friends" class="nav-btn flex flex-col items-center gap-1 p-2">
-      <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      <span class="text-[8px] uppercase tracking-widest">Friends</span>
+    <button onclick="nav('notifications');loadNotifications()" data-tab="notifications" class="nav-btn relative flex flex-col items-center gap-1 p-2">
+      <div class="relative">
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="notif-dot" class="notif-dot hidden"></span>
+      </div>
+      <span class="text-[8px] uppercase tracking-widest">Alerts</span>
     </button>
     <button onclick="nav('profile')" data-tab="profile" class="nav-btn flex flex-col items-center gap-1 p-2">
       <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -433,7 +445,10 @@
     }
     await loadFeed(); await loadReels(); loadMyPosts(username);
     loadFriends(); loadFriendRequests(); loadFriendCount();
-    subscribeToFeed();
+    subscribeToFeed(); subscribeToNotifications();
+    // check for unread notifications
+    const { count } = await sb.from('notifications').select('id',{count:'exact',head:true}).eq('user_id',currentUser.id).eq('is_read',false);
+    if (count > 0) document.getElementById('notif-dot').classList.remove('hidden');
   }
 
   // ── FEED ──
@@ -498,6 +513,13 @@
     await sb.from('posts').update({likes:post.likes}).eq('id',postId);
     btn.innerHTML = `<svg viewBox="0 0 24 24" class="w-3.5 h-3.5 fill-pink-400" stroke="#f472b6" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> ${post.likes}`;
     btn.className = btn.className.replace('text-white/20','text-pink-400');
+    // notify post owner (not self)
+    if (post.user_id && post.user_id !== currentUser.id) {
+      await sb.from('notifications').insert({
+        user_id: post.user_id, type: 'like', from_user_id: currentUser.id,
+        from_username: myProfile?.username, text: 'liked your post', is_read: false
+      }).then(()=>{}).catch(()=>{});
+    }
   }
 
   // ── COMMENTS ──
@@ -532,6 +554,18 @@
     const field = currentCommentType==='post' ? 'post_id' : 'reel_id';
     await sb.from('comments').insert({ user_id: currentUser.id, username: myProfile?.username, [field]: currentCommentTarget, content });
     document.getElementById('comment-input').value = '';
+    // notify post/reel owner
+    try {
+      const table = currentCommentType==='post' ? 'posts' : 'reels';
+      const { data: item } = await sb.from(table).select('user_id').eq('id',currentCommentTarget).single();
+      if (item?.user_id && item.user_id !== currentUser.id) {
+        await sb.from('notifications').insert({
+          user_id: item.user_id, type: 'comment', from_user_id: currentUser.id,
+          from_username: myProfile?.username,
+          text: content.length > 40 ? content.slice(0,40)+'…' : content, is_read: false
+        });
+      }
+    } catch(e) {}
     await loadComments();
   }
 
@@ -771,6 +805,12 @@
     const { data: existing } = await sb.from('friend_requests').select('*').eq('sender_id',currentUser.id).eq('receiver_id',viewingUserId).single();
     if (existing) return;
     await sb.from('friend_requests').insert({sender_id:currentUser.id, receiver_id:viewingUserId, status:'pending'});
+    // notify receiver
+    await sb.from('notifications').insert({
+      user_id: viewingUserId, type: 'friend_request', from_user_id: currentUser.id,
+      from_username: myProfile?.username, text: 'sent you a friend request', is_read: false,
+      meta: null
+    }).then(()=>{}).catch(()=>{});
     toast('Friend request sent! 🙌','success'); await updateFriendBtn(viewingUserId);
   }
 
@@ -786,22 +826,28 @@
       ? `<img src="${profile.avatar_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid rgba(34,211,238,0.3);" />`
       : `<div class="av" style="width:36px;height:36px;font-size:0.85rem;">${(name[0]||'?').toUpperCase()}</div>`;
     await loadMessages();
-    // Realtime
+    // Realtime — listen for NEW messages from the OTHER person only (we already show our own instantly)
     if (chatChannel) sb.removeChannel(chatChannel);
-    chatChannel = sb.channel(`chat-${[currentUser.id,userId].sort().join('-')}`)
+    chatChannel = sb.channel('messages-realtime')
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'}, payload => {
         const m = payload.new;
-        if ((m.sender_id===currentUser.id&&m.receiver_id===userId)||(m.sender_id===userId&&m.receiver_id===currentUser.id)) appendMessage(m);
+        const isOurConvo = (m.sender_id===currentUser.id&&m.receiver_id===userId)||(m.sender_id===userId&&m.receiver_id===currentUser.id);
+        const isFromOther = m.sender_id !== currentUser.id;
+        if (isOurConvo && isFromOther) appendMessage(m);
       }).subscribe();
   }
 
   async function loadMessages() {
     const msgs = document.getElementById('chat-messages');
-    msgs.innerHTML = '';
-    const { data } = await sb.from('messages').select('*')
+    msgs.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.15);font-size:11px;margin:auto;padding:2rem;">No messages yet.<br/>Say hello! 👋</div>';
+    const { data, error } = await sb.from('messages').select('*')
       .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${chatUserId}),and(sender_id.eq.${chatUserId},receiver_id.eq.${currentUser.id})`)
       .order('created_at',{ascending:true});
-    (data||[]).forEach(m=>appendMessage(m));
+    if (error) { toast('Could not load messages','error'); return; }
+    if (data && data.length > 0) {
+      msgs.innerHTML = '';
+      data.forEach(m=>appendMessage(m));
+    }
     msgs.scrollTop = msgs.scrollHeight;
   }
 
@@ -809,8 +855,10 @@
     const msgs = document.getElementById('chat-messages');
     const isMe = m.sender_id===currentUser.id;
     const div = document.createElement('div');
+    div.style.cssText = 'animation: fade-in 0.2s ease forwards;';
     div.className = isMe ? 'chat-bubble-me' : 'chat-bubble-them';
-    div.innerHTML = `<p class="text-sm text-white/80">${escapeHtml(m.content)}</p><p class="text-[8px] text-white/25 mt-1 uppercase tracking-widest">${timeAgo(m.created_at)}</p>`;
+    const time = m.created_at ? timeAgo(m.created_at) : 'just now';
+    div.innerHTML = `<p style="font-size:0.875rem;color:rgba(255,255,255,0.85);margin:0;">${escapeHtml(m.content)}</p><p style="font-size:8px;color:rgba(255,255,255,0.25);margin-top:4px;text-transform:uppercase;letter-spacing:0.1em;">${time}</p>`;
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
   }
@@ -819,12 +867,104 @@
     const content = document.getElementById('chat-input').value.trim();
     if (!content||!chatUserId) return;
     document.getElementById('chat-input').value='';
-    await sb.from('messages').insert({sender_id:currentUser.id, receiver_id:chatUserId, content});
+    const newMsg = {
+      sender_id: currentUser.id,
+      receiver_id: chatUserId,
+      content,
+      created_at: new Date().toISOString()
+    };
+    // Show immediately in UI
+    appendMessage(newMsg);
+    // Then save to DB
+    const { data, error } = await sb.from('messages').insert(newMsg).select().single();
+    if (error) {
+      toast('Message failed to send','error');
+      return;
+    }
+    // Create notification for receiver
+    await sb.from('notifications').insert({
+      user_id: chatUserId,
+      type: 'message',
+      from_user_id: currentUser.id,
+      from_username: myProfile?.username,
+      text: content.length > 40 ? content.slice(0,40)+'…' : content,
+      is_read: false
+    }).then(()=>{}).catch(()=>{});
   }
 
   function closeChat() {
     document.getElementById('chat-overlay').classList.remove('open');
     if (chatChannel) { sb.removeChannel(chatChannel); chatChannel=null; }
+  }
+
+  // ── NOTIFICATIONS ──
+  async function loadNotifications() {
+    const list = document.getElementById('notif-list');
+    list.innerHTML = '<div class="glass p-4 rounded-2xl text-center text-white/20 text-xs">Loading...</div>';
+    const { data: notifs } = await sb.from('notifications')
+      .select('*').eq('user_id', currentUser.id)
+      .order('created_at', {ascending:false}).limit(50);
+    // mark all as read
+    await sb.from('notifications').update({is_read:true}).eq('user_id',currentUser.id).eq('is_read',false).then(()=>{}).catch(()=>{});
+    document.getElementById('notif-dot').classList.add('hidden');
+    if (!notifs||!notifs.length) {
+      list.innerHTML = '<div class="glass p-6 rounded-2xl text-center text-white/20 text-xs">No notifications yet</div>'; return;
+    }
+    list.innerHTML = notifs.map((n,i) => {
+      const icon = n.type==='like' ? '❤️' : n.type==='comment' ? '💬' : n.type==='friend_request' ? '👋' : n.type==='message' ? '📩' : '🔔';
+      const isFriendReq = n.type==='friend_request';
+      const unread = !n.is_read;
+      return `
+      <div class="notif-item glass p-4 rounded-2xl flex items-start gap-3 border ${unread?'border-cyan-400/20':'border-white/5'}" style="animation-delay:${i*0.04}s">
+        <div class="text-xl flex-shrink-0 mt-0.5">${icon}</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-bold text-white/80"><span class="text-cyan-400">@${n.from_username||'someone'}</span> ${n.type==='like'?'liked your post':n.type==='comment'?'commented:':n.type==='friend_request'?'sent you a friend request':n.type==='message'?'sent you a message:':''}</p>
+          ${n.text&&n.type!=='like'&&n.type!=='friend_request'?`<p class="text-[10px] text-white/40 mt-1 italic">"${escapeHtml(n.text)}"</p>`:''}
+          <p class="text-[9px] text-white/20 mt-1 uppercase tracking-widest">${timeAgo(n.created_at)}</p>
+          ${isFriendReq ? `
+          <div class="flex gap-2 mt-2" id="freq-btns-${n.id}">
+            <button onclick="acceptFriendFromNotif('${n.from_user_id}','${n.id}')" class="btn-press bg-cyan-400 text-black text-[9px] font-bold uppercase px-3 py-1.5 rounded-xl">✅ Accept</button>
+            <button onclick="declineFriendFromNotif('${n.from_user_id}','${n.id}')" class="btn-press bg-white/5 text-white/40 text-[9px] font-bold uppercase px-3 py-1.5 rounded-xl">✗ Decline</button>
+          </div>` : ''}
+          ${n.type==='message'?`<button onclick="openChatFromNotif('${n.from_user_id}','${n.from_username}')" class="btn-press mt-2 bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 text-[9px] font-bold uppercase px-3 py-1.5 rounded-xl">💬 Reply</button>`:''}
+        </div>
+        ${unread?`<div style="width:6px;height:6px;background:#22d3ee;border-radius:50%;flex-shrink:0;margin-top:6px;"></div>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  async function acceptFriendFromNotif(fromUserId, notifId) {
+    // find the pending request
+    const { data: req } = await sb.from('friend_requests').select('id').eq('sender_id',fromUserId).eq('receiver_id',currentUser.id).eq('status','pending').single();
+    if (req) { await sb.from('friend_requests').update({status:'accepted'}).eq('id',req.id); }
+    document.getElementById(`freq-btns-${notifId}`).innerHTML = '<p class="text-[9px] text-cyan-400 font-bold uppercase tracking-widest mt-1">✅ Now Friends!</p>';
+    toast('Friend request accepted! 🎉','success');
+    loadFriends(); loadFriendCount();
+  }
+
+  async function declineFriendFromNotif(fromUserId, notifId) {
+    await sb.from('friend_requests').delete().eq('sender_id',fromUserId).eq('receiver_id',currentUser.id).eq('status','pending');
+    document.getElementById(`freq-btns-${notifId}`).innerHTML = '<p class="text-[9px] text-white/30 font-bold uppercase tracking-widest mt-1">Request declined</p>';
+    toast('Request declined','info');
+  }
+
+  async function openChatFromNotif(userId, username) {
+    const { data: profile } = await sb.from('profiles').select('*').eq('id',userId).single();
+    nav('home');
+    await openChatWith(userId, profile || {username});
+  }
+
+  function subscribeToNotifications() {
+    sb.channel(`notifs-${currentUser.id}`)
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`user_id=eq.${currentUser.id}`}, payload => {
+        document.getElementById('notif-dot').classList.remove('hidden');
+        const n = payload.new;
+        const msg = n.type==='like'?`@${n.from_username} liked your post`:
+          n.type==='comment'?`@${n.from_username} commented on your post`:
+          n.type==='friend_request'?`@${n.from_username} sent you a friend request`:
+          n.type==='message'?`@${n.from_username}: ${n.text}`:'New notification';
+        toast(msg,'info');
+      }).subscribe();
   }
 
   // ── HELPERS ──
