@@ -55,9 +55,31 @@
     #chat-overlay.open { display:flex; }
     .notif-dot { width:8px;height:8px;background:#f472b6;border-radius:50%;position:absolute;top:2px;right:2px;animation:pulse-glow 1.5s infinite; }
     .notif-item { animation: fade-in 0.3s ease both; }
-    .chat-bubble-me { background:rgba(34,211,238,0.15); border:1px solid rgba(34,211,238,0.2); border-radius:1.2rem 1.2rem 0.3rem 1.2rem; padding:0.6rem 1rem; max-width:75%; align-self:flex-end; }
-    .chat-bubble-them { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:1.2rem 1.2rem 1.2rem 0.3rem; padding:0.6rem 1rem; max-width:75%; align-self:flex-start; }
-    #chat-messages { flex:1; overflow-y:auto; padding:1rem; display:flex; flex-direction:column; gap:0.5rem; scrollbar-width:none; }
+    /* MY messages - RIGHT side - CYAN */
+    .chat-bubble-me {
+      background: linear-gradient(135deg, rgba(34,211,238,0.25), rgba(34,211,238,0.12));
+      border: 1px solid rgba(34,211,238,0.35);
+      border-radius: 1.2rem 1.2rem 0.25rem 1.2rem;
+      padding: 0.65rem 1rem;
+      max-width: 75%;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+    .chat-bubble-me p:first-child { color: #ffffff; }
+    .chat-bubble-me p:last-child { color: rgba(34,211,238,0.5); text-align:right; }
+    /* THEIR messages - LEFT side - PURPLE */
+    .chat-bubble-them {
+      background: linear-gradient(135deg, rgba(167,139,250,0.2), rgba(167,139,250,0.08));
+      border: 1px solid rgba(167,139,250,0.3);
+      border-radius: 1.2rem 1.2rem 1.2rem 0.25rem;
+      padding: 0.65rem 1rem;
+      max-width: 75%;
+      align-self: flex-start;
+      margin-right: auto;
+    }
+    .chat-bubble-them p:first-child { color: #f0e6ff; }
+    .chat-bubble-them p:last-child { color: rgba(167,139,250,0.5); }
+    #chat-messages { flex:1; overflow-y:auto; padding:1rem; display:flex; flex-direction:column; gap:0.6rem; scrollbar-width:none; }
     #chat-messages::-webkit-scrollbar { display:none; }
     /* AVATAR */
     .av { width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid rgba(34,211,238,0.3); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:900; color:#22d3ee; font-size:1rem; background:rgba(34,211,238,0.1); }
@@ -641,16 +663,33 @@
     const btn = document.getElementById('reel-upload-btn');
     btn.disabled=true; btn.innerText='UPLOADING...';
     document.getElementById('upload-progress-wrap').classList.remove('hidden');
-    document.getElementById('upload-bar').style.width='30%';
+    document.getElementById('upload-bar').style.width='20%';
     document.getElementById('upload-status').innerText='Uploading video...';
     try {
+      // Re-check session first
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { toast('Session expired. Please log out and log back in.','error'); btn.disabled=false; btn.innerText='🎬 PUBLISH REEL'; return; }
+
       const filename = `${currentUser.id}/${Date.now()}.${file.name.split('.').pop()}`;
       const { error: uploadError } = await sb.storage.from('reels').upload(filename, file, {contentType:file.type});
-      if (uploadError) throw uploadError;
+      if (uploadError) throw new Error('Storage: ' + uploadError.message);
+
       document.getElementById('upload-bar').style.width='70%';
+      document.getElementById('upload-status').innerText='Saving reel info...';
+
       const { data: urlData } = sb.storage.from('reels').getPublicUrl(filename);
-      const { error: dbError } = await sb.from('reels').insert({user_id:currentUser.id, username:myProfile?.username, caption, video_url:urlData.publicUrl, likes:0});
-      if (dbError) throw dbError;
+
+      const insertData = {
+        user_id: session.user.id,
+        username: myProfile?.username || session.user.email?.split('@')[0],
+        caption: caption || '',
+        video_url: urlData.publicUrl,
+        likes: 0
+      };
+
+      const { error: dbError } = await sb.from('reels').insert(insertData);
+      if (dbError) throw new Error('DB: ' + dbError.message + ' | code: ' + dbError.code);
+
       document.getElementById('upload-bar').style.width='100%';
       toast('Reel published! 🎬','success');
       document.getElementById('reel-file-input').value='';
@@ -660,7 +699,10 @@
       document.getElementById('upload-progress-wrap').classList.add('hidden');
       document.getElementById('upload-bar').style.width='0%';
       await loadReels(); nav('reels');
-    } catch(err) { toast('Upload failed: '+err.message,'error'); }
+    } catch(err) {
+      console.error('Reel upload error:', err);
+      toast(err.message, 'error');
+    }
     btn.disabled=false; btn.innerText='🎬 PUBLISH REEL';
   }
 
@@ -753,14 +795,28 @@
   }
 
   async function acceptFriend(requestId) {
+    // get request details first so we can notify sender
+    const { data: req } = await sb.from('friend_requests').select('*').eq('id', requestId).single();
     await sb.from('friend_requests').update({status:'accepted'}).eq('id',requestId);
     toast('Friend request accepted! 🎉','success');
+    // notify the original sender that their request was accepted
+    if (req?.sender_id) {
+      await sb.from('notifications').insert({
+        user_id: req.sender_id,
+        type: 'friend_accepted',
+        from_user_id: currentUser.id,
+        from_username: myProfile?.username,
+        text: 'accepted your friend request',
+        is_read: false
+      }).then(()=>{}).catch(()=>{});
+    }
     loadFriends(); loadFriendRequests(); loadFriendCount();
   }
 
   async function declineFriend(requestId) {
     await sb.from('friend_requests').delete().eq('id',requestId);
-    toast('Request declined','info'); loadFriendRequests();
+    toast('Request declined','info');
+    loadFriendRequests();
   }
 
   // ── USER PROFILE MODAL ──
@@ -803,15 +859,21 @@
     const { data: recv } = await sb.from('friend_requests').select('*').eq('sender_id',viewingUserId).eq('receiver_id',currentUser.id).eq('status','pending').single();
     if (recv) { await acceptFriend(recv.id); await updateFriendBtn(viewingUserId); loadFriends(); loadFriendCount(); return; }
     const { data: existing } = await sb.from('friend_requests').select('*').eq('sender_id',currentUser.id).eq('receiver_id',viewingUserId).single();
-    if (existing) return;
-    await sb.from('friend_requests').insert({sender_id:currentUser.id, receiver_id:viewingUserId, status:'pending'});
+    if (existing) { toast('Request already sent!','info'); return; }
+    const { error: frError } = await sb.from('friend_requests').insert({sender_id:currentUser.id, receiver_id:viewingUserId, status:'pending'});
+    if (frError) { toast('Could not send request: '+frError.message,'error'); return; }
     // notify receiver
-    await sb.from('notifications').insert({
-      user_id: viewingUserId, type: 'friend_request', from_user_id: currentUser.id,
-      from_username: myProfile?.username, text: 'sent you a friend request', is_read: false,
-      meta: null
-    }).then(()=>{}).catch(()=>{});
-    toast('Friend request sent! 🙌','success'); await updateFriendBtn(viewingUserId);
+    const { error: notifError } = await sb.from('notifications').insert({
+      user_id: viewingUserId,
+      type: 'friend_request',
+      from_user_id: currentUser.id,
+      from_username: myProfile?.username,
+      text: 'sent you a friend request',
+      is_read: false
+    });
+    if (notifError) console.warn('Notification failed:', notifError.message);
+    toast('Friend request sent! 🙌','success');
+    await updateFriendBtn(viewingUserId);
   }
 
   // ── CHAT ──
@@ -826,15 +888,30 @@
       ? `<img src="${profile.avatar_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid rgba(34,211,238,0.3);" />`
       : `<div class="av" style="width:36px;height:36px;font-size:0.85rem;">${(name[0]||'?').toUpperCase()}</div>`;
     await loadMessages();
-    // Realtime — listen for NEW messages from the OTHER person only (we already show our own instantly)
-    if (chatChannel) sb.removeChannel(chatChannel);
-    chatChannel = sb.channel('messages-realtime')
-      .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'}, payload => {
+    // Remove old channel first
+    if (chatChannel) { await sb.removeChannel(chatChannel); chatChannel = null; }
+    // Use a unique channel name per conversation pair (sorted so both sides use same channel)
+    const convoId = [currentUser.id, userId].sort().join('_');
+    chatChannel = sb.channel(`convo_${convoId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages'
+      }, payload => {
         const m = payload.new;
-        const isOurConvo = (m.sender_id===currentUser.id&&m.receiver_id===userId)||(m.sender_id===userId&&m.receiver_id===currentUser.id);
-        const isFromOther = m.sender_id !== currentUser.id;
-        if (isOurConvo && isFromOther) appendMessage(m);
-      }).subscribe();
+        const isOurConvo =
+          (m.sender_id === currentUser.id && m.receiver_id === userId) ||
+          (m.sender_id === userId && m.receiver_id === currentUser.id);
+        // Only append if from the OTHER person (we already show our own instantly)
+        if (isOurConvo && m.sender_id !== currentUser.id) {
+          appendMessage(m);
+        }
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Chat realtime connected ✅');
+        }
+      });
   }
 
   async function loadMessages() {
@@ -853,35 +930,34 @@
 
   function appendMessage(m) {
     const msgs = document.getElementById('chat-messages');
-    const isMe = m.sender_id===currentUser.id;
+    const isMe = m.sender_id === currentUser.id;
     const div = document.createElement('div');
     div.style.cssText = 'animation: fade-in 0.2s ease forwards;';
     div.className = isMe ? 'chat-bubble-me' : 'chat-bubble-them';
     const time = m.created_at ? timeAgo(m.created_at) : 'just now';
-    div.innerHTML = `<p style="font-size:0.875rem;color:rgba(255,255,255,0.85);margin:0;">${escapeHtml(m.content)}</p><p style="font-size:8px;color:rgba(255,255,255,0.25);margin-top:4px;text-transform:uppercase;letter-spacing:0.1em;">${time}</p>`;
+    div.innerHTML = `
+      <p style="font-size:0.85rem;margin:0;line-height:1.4;word-break:break-word;">${escapeHtml(m.content)}</p>
+      <p style="font-size:7px;margin-top:5px;text-transform:uppercase;letter-spacing:0.08em;opacity:0.7;">${time}</p>
+    `;
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
   }
 
   async function sendMessage() {
     const content = document.getElementById('chat-input').value.trim();
-    if (!content||!chatUserId) return;
-    document.getElementById('chat-input').value='';
-    const newMsg = {
+    if (!content || !chatUserId) return;
+    document.getElementById('chat-input').value = '';
+    // Show immediately in UI with local time
+    const tempMsg = { sender_id: currentUser.id, receiver_id: chatUserId, content, created_at: new Date().toISOString() };
+    appendMessage(tempMsg);
+    // Save to DB — no created_at so DB sets it
+    const { error } = await sb.from('messages').insert({
       sender_id: currentUser.id,
       receiver_id: chatUserId,
-      content,
-      created_at: new Date().toISOString()
-    };
-    // Show immediately in UI
-    appendMessage(newMsg);
-    // Then save to DB
-    const { data, error } = await sb.from('messages').insert(newMsg).select().single();
-    if (error) {
-      toast('Message failed to send','error');
-      return;
-    }
-    // Create notification for receiver
+      content
+    });
+    if (error) { toast('Message failed to send ❌', 'error'); return; }
+    // Notify receiver
     await sb.from('notifications').insert({
       user_id: chatUserId,
       type: 'message',
@@ -901,31 +977,70 @@
   async function loadNotifications() {
     const list = document.getElementById('notif-list');
     list.innerHTML = '<div class="glass p-4 rounded-2xl text-center text-white/20 text-xs">Loading...</div>';
+
     const { data: notifs } = await sb.from('notifications')
       .select('*').eq('user_id', currentUser.id)
       .order('created_at', {ascending:false}).limit(50);
+
     // mark all as read
-    await sb.from('notifications').update({is_read:true}).eq('user_id',currentUser.id).eq('is_read',false).then(()=>{}).catch(()=>{});
+    await sb.from('notifications').update({is_read:true})
+      .eq('user_id',currentUser.id).eq('is_read',false).then(()=>{}).catch(()=>{});
     document.getElementById('notif-dot').classList.add('hidden');
+
     if (!notifs||!notifs.length) {
-      list.innerHTML = '<div class="glass p-6 rounded-2xl text-center text-white/20 text-xs">No notifications yet</div>'; return;
+      list.innerHTML = '<div class="glass p-6 rounded-2xl text-center text-white/20 text-xs">No notifications yet</div>';
+      return;
     }
+
+    // for each friend_request notif, check if it's still pending
+    const friendReqNotifs = notifs.filter(n => n.type === 'friend_request');
+    const pendingMap = {};
+    for (const n of friendReqNotifs) {
+      const { data: req } = await sb.from('friend_requests')
+        .select('id,status').eq('sender_id', n.from_user_id).eq('receiver_id', currentUser.id).single();
+      pendingMap[n.id] = req; // null means declined/not found, req.status = 'pending' or 'accepted'
+    }
+
     list.innerHTML = notifs.map((n,i) => {
-      const icon = n.type==='like' ? '❤️' : n.type==='comment' ? '💬' : n.type==='friend_request' ? '👋' : n.type==='message' ? '📩' : '🔔';
-      const isFriendReq = n.type==='friend_request';
+      const icon = n.type==='like'?'❤️':n.type==='comment'?'💬':n.type==='friend_request'?'👋':n.type==='friend_accepted'?'✅':n.type==='message'?'📩':'🔔';
       const unread = !n.is_read;
+      const isFriendReq = n.type === 'friend_request';
+      const reqData = pendingMap[n.id];
+      const isPending = reqData && reqData.status === 'pending';
+      const isAlreadyFriends = reqData && reqData.status === 'accepted';
+
+      let actionHtml = '';
+      if (isFriendReq) {
+        if (isPending) {
+          actionHtml = `
+          <div class="flex gap-2 mt-2" id="freq-btns-${n.id}">
+            <button onclick="acceptFriendFromNotif('${n.from_user_id}','${n.id}')" class="btn-press bg-cyan-400 text-black text-[9px] font-bold uppercase px-3 py-1.5 rounded-xl">✅ Accept</button>
+            <button onclick="declineFriendFromNotif('${n.from_user_id}','${n.id}')" class="btn-press bg-white/5 text-white/40 text-[9px] font-bold uppercase px-3 py-1.5 rounded-xl">✗ Decline</button>
+          </div>`;
+        } else if (isAlreadyFriends) {
+          actionHtml = `<p class="text-[9px] text-cyan-400 font-bold uppercase tracking-widest mt-2" id="freq-btns-${n.id}">✅ Already Friends</p>`;
+        } else {
+          actionHtml = `<p class="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-2" id="freq-btns-${n.id}">Request no longer available</p>`;
+        }
+      }
+
+      const labelText = n.type==='like'?'liked your post'
+        :n.type==='comment'?'commented on your post'
+        :n.type==='friend_request'?'sent you a friend request'
+        :n.type==='friend_accepted'?'accepted your friend request'
+        :n.type==='message'?'sent you a message':'';
+
       return `
       <div class="notif-item glass p-4 rounded-2xl flex items-start gap-3 border ${unread?'border-cyan-400/20':'border-white/5'}" style="animation-delay:${i*0.04}s">
         <div class="text-xl flex-shrink-0 mt-0.5">${icon}</div>
         <div class="flex-1 min-w-0">
-          <p class="text-xs font-bold text-white/80"><span class="text-cyan-400">@${n.from_username||'someone'}</span> ${n.type==='like'?'liked your post':n.type==='comment'?'commented:':n.type==='friend_request'?'sent you a friend request':n.type==='message'?'sent you a message:':''}</p>
-          ${n.text&&n.type!=='like'&&n.type!=='friend_request'?`<p class="text-[10px] text-white/40 mt-1 italic">"${escapeHtml(n.text)}"</p>`:''}
+          <p class="text-xs font-bold text-white/80">
+            <span class="text-cyan-400">@${n.from_username||'someone'}</span> ${labelText}
+          </p>
+          ${n.text&&n.type!=='like'&&n.type!=='friend_request'&&n.type!=='friend_accepted'
+            ?`<p class="text-[10px] text-white/40 mt-1 italic">"${escapeHtml(n.text)}"</p>`:''}
           <p class="text-[9px] text-white/20 mt-1 uppercase tracking-widest">${timeAgo(n.created_at)}</p>
-          ${isFriendReq ? `
-          <div class="flex gap-2 mt-2" id="freq-btns-${n.id}">
-            <button onclick="acceptFriendFromNotif('${n.from_user_id}','${n.id}')" class="btn-press bg-cyan-400 text-black text-[9px] font-bold uppercase px-3 py-1.5 rounded-xl">✅ Accept</button>
-            <button onclick="declineFriendFromNotif('${n.from_user_id}','${n.id}')" class="btn-press bg-white/5 text-white/40 text-[9px] font-bold uppercase px-3 py-1.5 rounded-xl">✗ Decline</button>
-          </div>` : ''}
+          ${actionHtml}
           ${n.type==='message'?`<button onclick="openChatFromNotif('${n.from_user_id}','${n.from_username}')" class="btn-press mt-2 bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 text-[9px] font-bold uppercase px-3 py-1.5 rounded-xl">💬 Reply</button>`:''}
         </div>
         ${unread?`<div style="width:6px;height:6px;background:#22d3ee;border-radius:50%;flex-shrink:0;margin-top:6px;"></div>`:''}
@@ -934,17 +1049,38 @@
   }
 
   async function acceptFriendFromNotif(fromUserId, notifId) {
+    const btnWrap = document.getElementById(`freq-btns-${notifId}`);
+    btnWrap.innerHTML = '<p class="text-[9px] text-white/30 uppercase tracking-widest mt-1">Processing...</p>';
     // find the pending request
-    const { data: req } = await sb.from('friend_requests').select('id').eq('sender_id',fromUserId).eq('receiver_id',currentUser.id).eq('status','pending').single();
-    if (req) { await sb.from('friend_requests').update({status:'accepted'}).eq('id',req.id); }
-    document.getElementById(`freq-btns-${notifId}`).innerHTML = '<p class="text-[9px] text-cyan-400 font-bold uppercase tracking-widest mt-1">✅ Now Friends!</p>';
+    const { data: req, error: findErr } = await sb.from('friend_requests')
+      .select('id').eq('sender_id',fromUserId).eq('receiver_id',currentUser.id).eq('status','pending').single();
+    if (findErr || !req) {
+      // maybe already accepted, just update UI
+      btnWrap.innerHTML = '<p class="text-[9px] text-cyan-400 font-bold uppercase tracking-widest mt-1">✅ Now Friends!</p>';
+      loadFriends(); loadFriendCount(); return;
+    }
+    const { error: accErr } = await sb.from('friend_requests').update({status:'accepted'}).eq('id',req.id);
+    if (accErr) { toast('Failed to accept: '+accErr.message,'error'); return; }
+    // notify sender that their request was accepted
+    await sb.from('notifications').insert({
+      user_id: fromUserId,
+      type: 'friend_accepted',
+      from_user_id: currentUser.id,
+      from_username: myProfile?.username,
+      text: 'accepted your friend request',
+      is_read: false
+    }).then(()=>{}).catch(()=>{});
+    btnWrap.innerHTML = '<p class="text-[9px] text-cyan-400 font-bold uppercase tracking-widest mt-1">✅ Now Friends!</p>';
     toast('Friend request accepted! 🎉','success');
     loadFriends(); loadFriendCount();
   }
 
   async function declineFriendFromNotif(fromUserId, notifId) {
-    await sb.from('friend_requests').delete().eq('sender_id',fromUserId).eq('receiver_id',currentUser.id).eq('status','pending');
-    document.getElementById(`freq-btns-${notifId}`).innerHTML = '<p class="text-[9px] text-white/30 font-bold uppercase tracking-widest mt-1">Request declined</p>';
+    const btnWrap = document.getElementById(`freq-btns-${notifId}`);
+    btnWrap.innerHTML = '<p class="text-[9px] text-white/30 uppercase tracking-widest mt-1">Removing...</p>';
+    await sb.from('friend_requests').delete()
+      .eq('sender_id',fromUserId).eq('receiver_id',currentUser.id).eq('status','pending');
+    btnWrap.innerHTML = '<p class="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-1">✗ Request Declined</p>';
     toast('Request declined','info');
   }
 
@@ -955,15 +1091,17 @@
   }
 
   function subscribeToNotifications() {
-    sb.channel(`notifs-${currentUser.id}`)
+    sb.channel(`notifs-user-${currentUser.id}`)
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`user_id=eq.${currentUser.id}`}, payload => {
-        document.getElementById('notif-dot').classList.remove('hidden');
         const n = payload.new;
-        const msg = n.type==='like'?`@${n.from_username} liked your post`:
-          n.type==='comment'?`@${n.from_username} commented on your post`:
-          n.type==='friend_request'?`@${n.from_username} sent you a friend request`:
-          n.type==='message'?`@${n.from_username}: ${n.text}`:'New notification';
-        toast(msg,'info');
+        document.getElementById('notif-dot').classList.remove('hidden');
+        const msg = n.type==='like' ? `❤️ @${n.from_username} liked your post`
+          : n.type==='comment' ? `💬 @${n.from_username} commented on your post`
+          : n.type==='friend_request' ? `👋 @${n.from_username} sent you a friend request — check Alerts!`
+          : n.type==='friend_accepted' ? `✅ @${n.from_username} accepted your friend request`
+          : n.type==='message' ? `📩 @${n.from_username}: ${n.text}`
+          : '🔔 New notification';
+        toast(msg, n.type==='friend_request'||n.type==='friend_accepted' ? 'success' : 'info');
       }).subscribe();
   }
 
