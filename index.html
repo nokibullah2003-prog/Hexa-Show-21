@@ -205,15 +205,11 @@
 
   <!-- HOME -->
   <div id="tab-home" class="tab-content active pb-8" style="padding:0;">
-    <!-- Feed Header -->
     <div style="padding:20px 20px 12px;background:linear-gradient(180deg,rgba(2,2,3,0.95) 0%,transparent 100%);position:sticky;top:0;z-index:10;backdrop-filter:blur(20px);">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div>
           <p style="font-family:'Syne',sans-serif;font-size:22px;font-weight:900;font-style:italic;letter-spacing:-0.5px;color:white;line-height:1;">FOR <span style="color:#22d3ee;">YOU</span></p>
-          <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
-            <span style="width:6px;height:6px;background:#22d3ee;border-radius:50%;display:inline-block;animation:pulse-glow 1.5s infinite;"></span>
-            <p id="online-count" style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.2em;font-weight:700;">Loading feed...</p>
-          </div>
+
         </div>
         <div style="display:flex;gap:8px;">
           <div style="width:36px;height:36px;border-radius:50%;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.15);display:flex;align-items:center;justify-content:center;">
@@ -354,28 +350,23 @@
 
   <!-- SETTINGS -->
   <div id="tab-settings" class="tab-content p-5 pb-8 space-y-5">
-    <!-- Header -->
     <div style="padding-top:8px;">
       <p style="font-family:'Syne',sans-serif;font-size:22px;font-weight:900;font-style:italic;letter-spacing:-0.5px;color:white;">SETTINGS</p>
       <p style="font-size:9px;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.25em;margin-top:2px;">Manage your account</p>
     </div>
-
-    <!-- Account Section -->
     <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:20px;overflow:hidden;">
       <p style="font-size:9px;color:rgba(34,211,238,0.6);text-transform:uppercase;letter-spacing:0.25em;font-weight:700;padding:14px 16px 8px;">Account</p>
-      <!-- Username -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid rgba(255,255,255,0.05);">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:34px;height:34px;border-radius:50%;background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.2);display:flex;align-items:center;justify-content:center;">
+      <div style="border-top:1px solid rgba(255,255,255,0.05);padding:12px 16px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+          <div style="width:34px;height:34px;border-radius:50%;background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg viewBox="0 0 24 24" style="width:15px;height:15px;" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </div>
-          <div>
-            <p style="font-size:11px;color:rgba(255,255,255,0.8);font-weight:600;">Username</p>
-            <p id="settings-username" style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:1px;">—</p>
-          </div>
+          <p style="font-size:11px;color:rgba(255,255,255,0.8);font-weight:600;">Change Username</p>
         </div>
+        <input type="text" id="settings-new-username" placeholder="New username" maxlength="20" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:10px 14px;color:white;font-size:12px;outline:none;box-sizing:border-box;font-family:'DM Mono',monospace;" />
+        <p id="settings-username" style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:6px;padding-left:2px;">Current: —</p>
+        <button onclick="changeUsername()" class="btn-press" style="margin-top:8px;width:100%;background:rgba(34,211,238,0.12);border:1px solid rgba(34,211,238,0.3);border-radius:12px;padding:10px;color:#22d3ee;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;cursor:pointer;">Update Username</button>
       </div>
-      <!-- Change Password -->
       <div style="border-top:1px solid rgba(255,255,255,0.05);padding:12px 16px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
           <div style="width:34px;height:34px;border-radius:50%;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.2);display:flex;align-items:center;justify-content:center;">
@@ -387,11 +378,8 @@
         <button onclick="changePassword()" class="btn-press" style="margin-top:8px;width:100%;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);border-radius:12px;padding:10px;color:#a78bfa;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;cursor:pointer;">Update Password</button>
       </div>
     </div>
-
-    <!-- Appearance Section -->
     <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:20px;overflow:hidden;">
       <p style="font-size:9px;color:rgba(34,211,238,0.6);text-transform:uppercase;letter-spacing:0.25em;font-weight:700;padding:14px 16px 8px;">Appearance</p>
-      <!-- Theme toggle -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid rgba(255,255,255,0.05);">
         <div style="display:flex;align-items:center;gap:12px;">
           <div style="width:34px;height:34px;border-radius:50%;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);display:flex;align-items:center;justify-content:center;">
@@ -407,8 +395,6 @@
         </div>
       </div>
     </div>
-
-    <!-- About Section -->
     <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:20px;overflow:hidden;">
       <p style="font-size:9px;color:rgba(34,211,238,0.6);text-transform:uppercase;letter-spacing:0.25em;font-weight:700;padding:14px 16px 8px;">About</p>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid rgba(255,255,255,0.05);">
@@ -435,8 +421,6 @@
         <svg viewBox="0 0 24 24" style="width:14px;height:14px;color:rgba(255,255,255,0.2);" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </div>
-
-    <!-- Danger Zone -->
     <div style="background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.12);border-radius:20px;overflow:hidden;">
       <p style="font-size:9px;color:rgba(239,68,68,0.6);text-transform:uppercase;letter-spacing:0.25em;font-weight:700;padding:14px 16px 8px;">Danger Zone</p>
       <div style="padding:12px 16px;border-top:1px solid rgba(239,68,68,0.08);">
@@ -446,7 +430,6 @@
         </button>
       </div>
     </div>
-
     <p style="text-align:center;font-size:8px;color:rgba(255,255,255,0.1);text-transform:uppercase;letter-spacing:0.2em;padding-bottom:8px;">Share your feeds and reels and enjoy your life</p>
   </div>
 
@@ -501,7 +484,6 @@
     else { showAuth(); }
   };
 
-  // ── TOAST ──
   function toast(msg, type='info') {
     const el = document.getElementById('toast');
     el.className = `fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest`;
@@ -512,7 +494,6 @@
     setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.classList.add('hidden'), 300); }, 2500);
   }
 
-  // ── AUTH ──
   function toggleAuthMode() {
     authMode = authMode === 'signup' ? 'login' : 'signup';
     document.getElementById('auth-title').innerHTML = authMode==='signup' ? 'CREATE AN <span class="text-cyan-400">ACCOUNT</span>' : 'LOG IN YOUR <span class="text-cyan-400">ID</span>';
@@ -539,14 +520,12 @@
       if (authMode==='signup') {
         const { data: existing } = await sb.from('profiles').select('username').eq('username', username).single();
         if (existing) { showMsg(msg,'Username already taken — try a different name or add numbers','error'); btn.disabled=false; btn.innerText='SIGN UP'; return; }
-        // Use a unique random suffix in the email so same-username attempts never clash at auth level
         const uniqueEmail = `${username}_${Math.random().toString(36).slice(2,8)}@hexashow.io`;
         const { data, error } = await sb.auth.signUp({ email: uniqueEmail, password });
         if (error) throw error;
         await sb.from('profiles').insert({ id: data.user.id, username, email: uniqueEmail, created_at: new Date().toISOString() });
         currentUser = data.user; await startApp();
       } else {
-        // Fetch the real email stored during signup
         const { data: profile, error: profileErr } = await sb.from('profiles').select('id, email').eq('username', username).single();
         if (profileErr || !profile) { showMsg(msg,'Username not found','error'); btn.disabled=false; btn.innerText='LOG IN'; return; }
         const loginEmail = profile.email || `${username}@hexashow.io`;
@@ -570,7 +549,6 @@
       : 'mb-4 p-3 rounded-xl text-[10px] font-bold uppercase tracking-widest border bg-cyan-500/10 text-cyan-400 border-cyan-400/20 block';
   }
 
-  // ── START APP ──
   async function startApp() {
     document.getElementById('loading-screen').classList.add('hidden');
     document.getElementById('auth-portal').classList.add('hidden');
@@ -589,19 +567,16 @@
     await loadFeed(); await loadReels(); loadMyPosts(username);
     loadFriends(); loadFriendRequests(); loadFriendCount();
     subscribeToFeed(); subscribeToNotifications();
-    // check for unread notifications
     const { count } = await sb.from('notifications').select('id',{count:'exact',head:true}).eq('user_id',currentUser.id).eq('is_read',false);
     if (count > 0) document.getElementById('notif-dot').classList.remove('hidden');
   }
 
-  // ── FEED ──
   async function loadFeed() {
     const { data: posts } = await sb.from('posts').select('*').order('created_at',{ascending:false}).limit(50);
     allPosts = posts || [];
     const { data: likes } = await sb.from('post_likes').select('post_id').eq('user_id', currentUser.id);
     likedPosts = new Set((likes||[]).map(l=>l.post_id));
     renderFeed(allPosts,'feed-container');
-    document.getElementById('online-count').innerText = `${allPosts.length} transmission${allPosts.length!==1?'s':''} on the grid`;
   }
 
   function avHtml(profile, size='sm') {
@@ -623,10 +598,8 @@
       const color = colors[(p.username||'?').charCodeAt(0) % colors.length];
       return `
       <div class="post-card" style="animation-delay:${i*0.05}s;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:24px;overflow:hidden;transition:border-color 0.2s,transform 0.2s;" onmouseenter="this.style.borderColor='rgba(34,211,238,0.2)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.07)'">
-        <!-- Top accent line -->
         <div style="height:2px;background:linear-gradient(90deg,${color}40,${color}10,transparent);"></div>
         <div style="padding:16px 18px 14px;">
-          <!-- User row -->
           <div style="display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:12px;" onclick="openUserProfile('${p.user_id}')">
             <div style="width:42px;height:42px;border-radius:50%;background:${color}18;border:2px solid ${color}40;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:900;font-size:16px;color:${color};flex-shrink:0;">
               ${(p.username||'?')[0].toUpperCase()}
@@ -637,9 +610,7 @@
             </div>
             <div style="width:6px;height:6px;border-radius:50%;background:${color};opacity:0.5;flex-shrink:0;"></div>
           </div>
-          <!-- Content -->
           <p style="font-size:13px;color:rgba(255,255,255,0.82);line-height:1.65;margin-bottom:14px;padding-left:2px;">${escapeHtml(p.content)}</p>
-          <!-- Actions -->
           <div style="display:flex;align-items:center;gap:6px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.05);">
             <button onclick="likePost('${p.id}',this)" style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:99px;border:1px solid ${liked?'rgba(244,114,182,0.3)':'rgba(255,255,255,0.08)'};background:${liked?'rgba(244,114,182,0.1)':'transparent'};color:${liked?'#f472b6':'rgba(255,255,255,0.3)'};font-size:10px;font-weight:700;cursor:pointer;transition:all 0.2s;" class="btn-press">
               <svg viewBox="0 0 24 24" style="width:13px;height:13px;" fill="${liked?'#f472b6':'none'}" stroke="${liked?'#f472b6':'currentColor'}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -658,11 +629,9 @@
     sb.channel('posts').on('postgres_changes',{event:'INSERT',schema:'public',table:'posts'}, payload => {
       allPosts.unshift(payload.new);
       renderFeed(allPosts,'feed-container');
-      document.getElementById('online-count').innerText = `${allPosts.length} transmissions on the grid`;
     }).subscribe();
   }
 
-  // ── LIKE POST ──
   async function likePost(postId, btn) {
     if (likedPosts.has(postId)) { toast('Already liked!','info'); return; }
     likedPosts.add(postId);
@@ -671,8 +640,6 @@
     await sb.from('post_likes').insert({user_id:currentUser.id, post_id:postId});
     await sb.from('posts').update({likes:post.likes}).eq('id',postId);
     btn.innerHTML = `<svg viewBox="0 0 24 24" class="w-3.5 h-3.5 fill-pink-400" stroke="#f472b6" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> ${post.likes}`;
-    btn.className = btn.className.replace('text-white/20','text-pink-400');
-    // notify post owner (not self)
     if (post.user_id && post.user_id !== currentUser.id) {
       await sb.from('notifications').insert({
         user_id: post.user_id, type: 'like', from_user_id: currentUser.id,
@@ -681,7 +648,6 @@
     }
   }
 
-  // ── COMMENTS ──
   async function openComments(targetId, type) {
     currentCommentTarget = targetId; currentCommentType = type;
     document.getElementById('comment-input').value = '';
@@ -713,7 +679,6 @@
     const field = currentCommentType==='post' ? 'post_id' : 'reel_id';
     await sb.from('comments').insert({ user_id: currentUser.id, username: myProfile?.username, [field]: currentCommentTarget, content });
     document.getElementById('comment-input').value = '';
-    // notify post/reel owner
     try {
       const table = currentCommentType==='post' ? 'posts' : 'reels';
       const { data: item } = await sb.from(table).select('user_id').eq('id',currentCommentTarget).single();
@@ -728,7 +693,6 @@
     await loadComments();
   }
 
-  // ── REELS ──
   async function loadReels() {
     const { data: reels } = await sb.from('reels').select('*').order('created_at',{ascending:false}).limit(20);
     const { data: rlikes } = await sb.from('reel_likes').select('reel_id').eq('user_id',currentUser.id);
@@ -748,24 +712,12 @@
           <svg viewBox="0 0 24 24" style="width:26px;height:26px;" fill="white" stroke="none"><polygon points="5,3 19,12 5,21"/></svg>
         </div>
 
-        <!-- Top gradient + reel counter -->
-        <div style="position:absolute;top:0;left:0;right:0;padding:18px 16px 40px;background:linear-gradient(180deg,rgba(0,0,0,0.65) 0%,transparent 100%);pointer-events:none;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div style="width:28px;height:28px;border-radius:50%;background:rgba(34,211,238,0.15);border:1.5px solid rgba(34,211,238,0.4);display:flex;align-items:center;justify-content:center;">
-              <svg viewBox="0 0 24 24" style="width:13px;height:13px;" fill="#22d3ee" stroke="none"><polygon points="5,3 19,12 5,21"/></svg>
-            </div>
-            <span style="font-size:9px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.2em;font-weight:700;">${i+1} / ${reels.length}</span>
-          </div>
-        </div>
-
         <!-- Right action buttons -->
         <div class="reel-actions" style="position:absolute;right:14px;bottom:100px;display:flex;flex-direction:column;align-items:center;gap:22px;">
-          <!-- Like -->
           <button class="reel-action-btn" onclick="likeReel('${r.id}',this);event.stopPropagation()" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);border:1px solid ${liked?'rgba(244,114,182,0.4)':'rgba(255,255,255,0.12)'};border-radius:18px;padding:12px 10px;cursor:pointer;transition:all 0.2s;">
             <svg viewBox="0 0 24 24" style="width:24px;height:24px;" fill="${liked?'#f472b6':'none'}" stroke="${liked?'#f472b6':'white'}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             <span style="font-size:10px;font-weight:800;color:white;">${r.likes||0}</span>
           </button>
-          <!-- Comment -->
           <button class="reel-action-btn" onclick="openComments('${r.id}','reel');event.stopPropagation()" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:12px 10px;cursor:pointer;transition:all 0.2s;">
             <svg viewBox="0 0 24 24" style="width:24px;height:24px;" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span style="font-size:10px;font-weight:800;color:white;">Chat</span>
@@ -784,33 +736,20 @@
               <p style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:4px;text-transform:uppercase;letter-spacing:0.15em;">${timeAgo(r.created_at)}</p>
             </div>
           </div>
-          <!-- Scroll hint -->
-          <div style="display:flex;justify-content:center;margin-top:14px;gap:5px;">
-            ${reels.map((_,j) => `<div style="width:${j===i?18:5}px;height:3px;border-radius:99px;background:${j===i?'#22d3ee':'rgba(255,255,255,0.2)'};transition:all 0.3s;"></div>`).join('')}
-          </div>
         </div>
       </div>`; }).join('');
 
-    // Fade in videos only after they have data (prevents broken-image glitch)
     container.querySelectorAll('.reel-item video').forEach(video => {
-      if (video.readyState >= 2) {
-        video.classList.add('loaded');
-      } else {
-        video.addEventListener('loadeddata', () => video.classList.add('loaded'), { once: true });
-      }
+      if (video.readyState >= 2) { video.classList.add('loaded'); }
+      else { video.addEventListener('loadeddata', () => video.classList.add('loaded'), { once: true }); }
     });
 
-    // Disconnect previous observer to avoid memory leaks and conflicting play/pause
     if (window._reelObserver) window._reelObserver.disconnect();
     window._reelObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         const video = entry.target.querySelector('video'); if (!video) return;
-        if (entry.isIntersecting) {
-          video.play().catch(()=>{});
-        } else {
-          video.pause();
-          video.currentTime = 0; // reset so next view starts fresh
-        }
+        if (entry.isIntersecting) { video.play().catch(()=>{}); }
+        else { video.pause(); video.currentTime = 0; }
       });
     }, { threshold: 0.5 });
     container.querySelectorAll('.reel-item').forEach(item => window._reelObserver.observe(item));
@@ -829,18 +768,23 @@
   }
 
   async function likeReel(reelId, btn) {
-    if (likedReels.has(reelId)) { toast('Already liked!','info'); return; }
+    if (likedReels.has(reelId)) { toast("Already liked!","info"); return; }
     likedReels.add(reelId);
-    // Update UI immediately (optimistic update)
-    const spanEl = btn.querySelector('span');
-    const svgEl = btn.querySelector('svg');
-    const currentCount = parseInt(spanEl?.innerText || '0', 10);
-    const newLikes = currentCount + 1;
-    if (spanEl) spanEl.innerText = newLikes;
-    if (svgEl) { svgEl.setAttribute('fill','#f472b6'); svgEl.setAttribute('stroke','#f472b6'); }
-    // Persist to DB
-    await sb.from('reel_likes').insert({user_id:currentUser.id, reel_id:reelId});
-    await sb.from('reels').update({likes:newLikes}).eq('id',reelId);
+    const spanEl = btn.querySelector("span");
+    const svgEl = btn.querySelector("svg");
+    // Optimistic UI update
+    const currentCount = parseInt(spanEl?.innerText || "0", 10);
+    if (spanEl) spanEl.innerText = currentCount + 1;
+    if (svgEl) { svgEl.setAttribute("fill","#f472b6"); svgEl.setAttribute("stroke","#f472b6"); }
+    btn.style.borderColor = "rgba(244,114,182,0.4)";
+    // Insert like record
+    await sb.from("reel_likes").insert({user_id:currentUser.id, reel_id:reelId});
+    // Fetch real count from DB and increment atomically
+    const { data: reel } = await sb.from("reels").select("likes").eq("id",reelId).single();
+    const realCount = (reel?.likes || 0) + 1;
+    await sb.from("reels").update({likes: realCount}).eq("id",reelId);
+    // Sync UI to real DB count
+    if (spanEl) spanEl.innerText = realCount;
   }
 
   function previewReel(event) {
@@ -861,30 +805,17 @@
     document.getElementById('upload-bar').style.width='20%';
     document.getElementById('upload-status').innerText='Uploading video...';
     try {
-      // Re-check session first
       const { data: { session } } = await sb.auth.getSession();
       if (!session) { toast('Session expired. Please log out and log back in.','error'); btn.disabled=false; btn.innerText='🎬 PUBLISH REEL'; return; }
-
       const filename = `${currentUser.id}/${Date.now()}.${file.name.split('.').pop()}`;
       const { error: uploadError } = await sb.storage.from('reels').upload(filename, file, {contentType:file.type});
       if (uploadError) throw new Error('Storage: ' + uploadError.message);
-
       document.getElementById('upload-bar').style.width='70%';
       document.getElementById('upload-status').innerText='Saving reel info...';
-
       const { data: urlData } = sb.storage.from('reels').getPublicUrl(filename);
-
-      const insertData = {
-        user_id: session.user.id,
-        username: myProfile?.username || session.user.email?.split('@')[0],
-        caption: caption || '',
-        video_url: urlData.publicUrl,
-        likes: 0
-      };
-
+      const insertData = { user_id: session.user.id, username: myProfile?.username || session.user.email?.split('@')[0], caption: caption || '', video_url: urlData.publicUrl, likes: 0 };
       const { error: dbError } = await sb.from('reels').insert(insertData);
-      if (dbError) throw new Error('DB: ' + dbError.message + ' | code: ' + dbError.code);
-
+      if (dbError) throw new Error('DB: ' + dbError.message);
       document.getElementById('upload-bar').style.width='100%';
       toast('Reel published! 🎬','success');
       document.getElementById('reel-file-input').value='';
@@ -894,14 +825,10 @@
       document.getElementById('upload-progress-wrap').classList.add('hidden');
       document.getElementById('upload-bar').style.width='0%';
       await loadReels(); nav('reels');
-    } catch(err) {
-      console.error('Reel upload error:', err);
-      toast(err.message, 'error');
-    }
+    } catch(err) { console.error('Reel upload error:', err); toast(err.message, 'error'); }
     btn.disabled=false; btn.innerText='🎬 PUBLISH REEL';
   }
 
-  // ── AVATAR ──
   async function handleAvatarUpload(event) {
     const file = event.target.files[0]; if (!file) return;
     if (file.size > 5*1024*1024) { toast('Image too large! Max 5MB','error'); return; }
@@ -918,7 +845,6 @@
     } catch(err) { toast('Upload failed: '+err.message,'error'); }
   }
 
-  // ── POST ──
   async function handlePost() {
     const content = document.getElementById('post-input').value.trim();
     if (!content) { toast('Write something first!','error'); return; }
@@ -944,7 +870,6 @@
       </div>`).join('');
   }
 
-  // ── FRIENDS ──
   async function loadFriends() {
     const { data: sent } = await sb.from('friend_requests').select('receiver_id').eq('sender_id',currentUser.id).eq('status','accepted');
     const { data: received } = await sb.from('friend_requests').select('sender_id').eq('receiver_id',currentUser.id).eq('status','accepted');
@@ -990,31 +915,20 @@
   }
 
   async function acceptFriend(requestId) {
-    // get request details first so we can notify sender
     const { data: req } = await sb.from('friend_requests').select('*').eq('id', requestId).single();
     await sb.from('friend_requests').update({status:'accepted'}).eq('id',requestId);
     toast('Friend request accepted! 🎉','success');
-    // notify the original sender that their request was accepted
     if (req?.sender_id) {
-      await sb.from('notifications').insert({
-        user_id: req.sender_id,
-        type: 'friend_accepted',
-        from_user_id: currentUser.id,
-        from_username: myProfile?.username,
-        text: 'accepted your friend request',
-        is_read: false
-      }).then(()=>{}).catch(()=>{});
+      await sb.from('notifications').insert({ user_id: req.sender_id, type: 'friend_accepted', from_user_id: currentUser.id, from_username: myProfile?.username, text: 'accepted your friend request', is_read: false }).then(()=>{}).catch(()=>{});
     }
     loadFriends(); loadFriendRequests(); loadFriendCount();
   }
 
   async function declineFriend(requestId) {
     await sb.from('friend_requests').delete().eq('id',requestId);
-    toast('Request declined','info');
-    loadFriendRequests();
+    toast('Request declined','info'); loadFriendRequests();
   }
 
-  // ── USER PROFILE MODAL ──
   async function openUserProfile(userId) {
     if (userId===currentUser.id) { nav('profile'); return; }
     viewingUserId=userId;
@@ -1057,21 +971,12 @@
     if (existing) { toast('Request already sent!','info'); return; }
     const { error: frError } = await sb.from('friend_requests').insert({sender_id:currentUser.id, receiver_id:viewingUserId, status:'pending'});
     if (frError) { toast('Could not send request: '+frError.message,'error'); return; }
-    // notify receiver
-    const { error: notifError } = await sb.from('notifications').insert({
-      user_id: viewingUserId,
-      type: 'friend_request',
-      from_user_id: currentUser.id,
-      from_username: myProfile?.username,
-      text: 'sent you a friend request',
-      is_read: false
-    });
+    const { error: notifError } = await sb.from('notifications').insert({ user_id: viewingUserId, type: 'friend_request', from_user_id: currentUser.id, from_username: myProfile?.username, text: 'sent you a friend request', is_read: false });
     if (notifError) console.warn('Notification failed:', notifError.message);
     toast('Friend request sent! 🙌','success');
     await updateFriendBtn(viewingUserId);
   }
 
-  // ── CHAT ──
   async function openChatWith(userId, profile) {
     chatUserId = userId;
     document.getElementById('user-profile-modal').classList.remove('open');
@@ -1083,30 +988,14 @@
       ? `<img src="${profile.avatar_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid rgba(34,211,238,0.3);" />`
       : `<div class="av" style="width:36px;height:36px;font-size:0.85rem;">${(name[0]||'?').toUpperCase()}</div>`;
     await loadMessages();
-    // Remove old channel first
     if (chatChannel) { await sb.removeChannel(chatChannel); chatChannel = null; }
-    // Use a unique channel name per conversation pair (sorted so both sides use same channel)
     const convoId = [currentUser.id, userId].sort().join('_');
     chatChannel = sb.channel(`convo_${convoId}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages'
-      }, payload => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
         const m = payload.new;
-        const isOurConvo =
-          (m.sender_id === currentUser.id && m.receiver_id === userId) ||
-          (m.sender_id === userId && m.receiver_id === currentUser.id);
-        // Only append if from the OTHER person (we already show our own instantly)
-        if (isOurConvo && m.sender_id !== currentUser.id) {
-          appendMessage(m);
-        }
-      })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Chat realtime connected ✅');
-        }
-      });
+        const isOurConvo = (m.sender_id === currentUser.id && m.receiver_id === userId) || (m.sender_id === userId && m.receiver_id === currentUser.id);
+        if (isOurConvo && m.sender_id !== currentUser.id) { appendMessage(m); }
+      }).subscribe();
   }
 
   async function loadMessages() {
@@ -1116,10 +1005,7 @@
       .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${chatUserId}),and(sender_id.eq.${chatUserId},receiver_id.eq.${currentUser.id})`)
       .order('created_at',{ascending:true});
     if (error) { toast('Could not load messages','error'); return; }
-    if (data && data.length > 0) {
-      msgs.innerHTML = '';
-      data.forEach(m=>appendMessage(m));
-    }
+    if (data && data.length > 0) { msgs.innerHTML = ''; data.forEach(m=>appendMessage(m)); }
     msgs.scrollTop = msgs.scrollHeight;
   }
 
@@ -1142,25 +1028,11 @@
     const content = document.getElementById('chat-input').value.trim();
     if (!content || !chatUserId) return;
     document.getElementById('chat-input').value = '';
-    // Show immediately in UI with local time
     const tempMsg = { sender_id: currentUser.id, receiver_id: chatUserId, content, created_at: new Date().toISOString() };
     appendMessage(tempMsg);
-    // Save to DB — no created_at so DB sets it
-    const { error } = await sb.from('messages').insert({
-      sender_id: currentUser.id,
-      receiver_id: chatUserId,
-      content
-    });
+    const { error } = await sb.from('messages').insert({ sender_id: currentUser.id, receiver_id: chatUserId, content });
     if (error) { toast('Message failed to send ❌', 'error'); return; }
-    // Notify receiver
-    await sb.from('notifications').insert({
-      user_id: chatUserId,
-      type: 'message',
-      from_user_id: currentUser.id,
-      from_username: myProfile?.username,
-      text: content.length > 40 ? content.slice(0,40)+'…' : content,
-      is_read: false
-    }).then(()=>{}).catch(()=>{});
+    await sb.from('notifications').insert({ user_id: chatUserId, type: 'message', from_user_id: currentUser.id, from_username: myProfile?.username, text: content.length > 40 ? content.slice(0,40)+'…' : content, is_read: false }).then(()=>{}).catch(()=>{});
   }
 
   function closeChat() {
@@ -1168,34 +1040,19 @@
     if (chatChannel) { sb.removeChannel(chatChannel); chatChannel=null; }
   }
 
-  // ── NOTIFICATIONS ──
   async function loadNotifications() {
     const list = document.getElementById('notif-list');
     list.innerHTML = '<div class="glass p-4 rounded-2xl text-center text-white/20 text-xs">Loading...</div>';
-
-    const { data: notifs } = await sb.from('notifications')
-      .select('*').eq('user_id', currentUser.id)
-      .order('created_at', {ascending:false}).limit(50);
-
-    // mark all as read
-    await sb.from('notifications').update({is_read:true})
-      .eq('user_id',currentUser.id).eq('is_read',false).then(()=>{}).catch(()=>{});
+    const { data: notifs } = await sb.from('notifications').select('*').eq('user_id', currentUser.id).order('created_at', {ascending:false}).limit(50);
+    await sb.from('notifications').update({is_read:true}).eq('user_id',currentUser.id).eq('is_read',false).then(()=>{}).catch(()=>{});
     document.getElementById('notif-dot').classList.add('hidden');
-
-    if (!notifs||!notifs.length) {
-      list.innerHTML = '<div class="glass p-6 rounded-2xl text-center text-white/20 text-xs">No notifications yet</div>';
-      return;
-    }
-
-    // for each friend_request notif, check if it's still pending
+    if (!notifs||!notifs.length) { list.innerHTML = '<div class="glass p-6 rounded-2xl text-center text-white/20 text-xs">No notifications yet</div>'; return; }
     const friendReqNotifs = notifs.filter(n => n.type === 'friend_request');
     const pendingMap = {};
     for (const n of friendReqNotifs) {
-      const { data: req } = await sb.from('friend_requests')
-        .select('id,status').eq('sender_id', n.from_user_id).eq('receiver_id', currentUser.id).single();
-      pendingMap[n.id] = req; // null means declined/not found, req.status = 'pending' or 'accepted'
+      const { data: req } = await sb.from('friend_requests').select('id,status').eq('sender_id', n.from_user_id).eq('receiver_id', currentUser.id).single();
+      pendingMap[n.id] = req;
     }
-
     list.innerHTML = notifs.map((n,i) => {
       const icon = n.type==='like'?'❤️':n.type==='comment'?'💬':n.type==='friend_request'?'👋':n.type==='friend_accepted'?'✅':n.type==='message'?'📩':'🔔';
       const unread = !n.is_read;
@@ -1203,68 +1060,39 @@
       const reqData = pendingMap[n.id];
       const isPending = reqData && reqData.status === 'pending';
       const isAlreadyFriends = reqData && reqData.status === 'accepted';
-
       let actionHtml = '';
       if (isFriendReq) {
         if (isPending) {
-          actionHtml = `
-          <div class="flex gap-2 mt-2" id="freq-btns-${n.id}">
-            <button onclick="acceptFriendFromNotif('${n.from_user_id}','${n.id}')" class="btn-press bg-cyan-400 text-black text-[9px] font-bold uppercase px-3 py-1.5 rounded-xl">✅ Accept</button>
-            <button onclick="declineFriendFromNotif('${n.from_user_id}','${n.id}')" class="btn-press bg-white/5 text-white/40 text-[9px] font-bold uppercase px-3 py-1.5 rounded-xl">✗ Decline</button>
-          </div>`;
+          actionHtml = `<div class="flex gap-2 mt-2" id="freq-btns-${n.id}"><button onclick="acceptFriendFromNotif('${n.from_user_id}','${n.id}')" class="btn-press bg-cyan-400 text-black text-[9px] font-bold uppercase px-3 py-1.5 rounded-xl">✅ Accept</button><button onclick="declineFriendFromNotif('${n.from_user_id}','${n.id}')" class="btn-press bg-white/5 text-white/40 text-[9px] font-bold uppercase px-3 py-1.5 rounded-xl">✗ Decline</button></div>`;
         } else if (isAlreadyFriends) {
           actionHtml = `<p class="text-[9px] text-cyan-400 font-bold uppercase tracking-widest mt-2" id="freq-btns-${n.id}">✅ Already Friends</p>`;
         } else {
           actionHtml = `<p class="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-2" id="freq-btns-${n.id}">Request no longer available</p>`;
         }
       }
-
-      const labelText = n.type==='like'?'liked your post'
-        :n.type==='comment'?'commented on your post'
-        :n.type==='friend_request'?'sent you a friend request'
-        :n.type==='friend_accepted'?'accepted your friend request'
-        :n.type==='message'?'sent you a message':'';
-
+      const labelText = n.type==='like'?'liked your post':n.type==='comment'?'commented on your post':n.type==='friend_request'?'sent you a friend request':n.type==='friend_accepted'?'accepted your friend request':n.type==='message'?'sent you a message':'';
       return `
       <div class="notif-item glass p-4 rounded-2xl flex items-start gap-3 border ${unread?'border-cyan-400/20':'border-white/5'}" style="animation-delay:${i*0.04}s">
         <div class="text-xl flex-shrink-0 mt-0.5">${icon}</div>
         <div class="flex-1 min-w-0">
-          <p class="text-xs font-bold text-white/80">
-            <span class="text-cyan-400">@${n.from_username||'someone'}</span> ${labelText}
-          </p>
-          ${n.text&&n.type!=='like'&&n.type!=='friend_request'&&n.type!=='friend_accepted'
-            ?`<p class="text-[10px] text-white/40 mt-1 italic">"${escapeHtml(n.text)}"</p>`:''}
+          <p class="text-xs font-bold text-white/80"><span class="text-cyan-400">@${n.from_username||'someone'}</span> ${labelText}</p>
+          ${n.text&&n.type!=='like'&&n.type!=='friend_request'&&n.type!=='friend_accepted'?`<p class="text-[10px] text-white/40 mt-1 italic">"${escapeHtml(n.text)}"</p>`:''}
           <p class="text-[9px] text-white/20 mt-1 uppercase tracking-widest">${timeAgo(n.created_at)}</p>
           ${actionHtml}
           ${n.type==='message'?`<button onclick="openChatFromNotif('${n.from_user_id}','${n.from_username}')" class="btn-press mt-2 bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 text-[9px] font-bold uppercase px-3 py-1.5 rounded-xl">💬 Reply</button>`:''}
         </div>
         ${unread?`<div style="width:6px;height:6px;background:#22d3ee;border-radius:50%;flex-shrink:0;margin-top:6px;"></div>`:''}
-      </div>`;
-    }).join('');
+      </div>`; }).join('');
   }
 
   async function acceptFriendFromNotif(fromUserId, notifId) {
     const btnWrap = document.getElementById(`freq-btns-${notifId}`);
     btnWrap.innerHTML = '<p class="text-[9px] text-white/30 uppercase tracking-widest mt-1">Processing...</p>';
-    // find the pending request
-    const { data: req, error: findErr } = await sb.from('friend_requests')
-      .select('id').eq('sender_id',fromUserId).eq('receiver_id',currentUser.id).eq('status','pending').single();
-    if (findErr || !req) {
-      // maybe already accepted, just update UI
-      btnWrap.innerHTML = '<p class="text-[9px] text-cyan-400 font-bold uppercase tracking-widest mt-1">✅ Now Friends!</p>';
-      loadFriends(); loadFriendCount(); return;
-    }
+    const { data: req, error: findErr } = await sb.from('friend_requests').select('id').eq('sender_id',fromUserId).eq('receiver_id',currentUser.id).eq('status','pending').single();
+    if (findErr || !req) { btnWrap.innerHTML = '<p class="text-[9px] text-cyan-400 font-bold uppercase tracking-widest mt-1">✅ Now Friends!</p>'; loadFriends(); loadFriendCount(); return; }
     const { error: accErr } = await sb.from('friend_requests').update({status:'accepted'}).eq('id',req.id);
     if (accErr) { toast('Failed to accept: '+accErr.message,'error'); return; }
-    // notify sender that their request was accepted
-    await sb.from('notifications').insert({
-      user_id: fromUserId,
-      type: 'friend_accepted',
-      from_user_id: currentUser.id,
-      from_username: myProfile?.username,
-      text: 'accepted your friend request',
-      is_read: false
-    }).then(()=>{}).catch(()=>{});
+    await sb.from('notifications').insert({ user_id: fromUserId, type: 'friend_accepted', from_user_id: currentUser.id, from_username: myProfile?.username, text: 'accepted your friend request', is_read: false }).then(()=>{}).catch(()=>{});
     btnWrap.innerHTML = '<p class="text-[9px] text-cyan-400 font-bold uppercase tracking-widest mt-1">✅ Now Friends!</p>';
     toast('Friend request accepted! 🎉','success');
     loadFriends(); loadFriendCount();
@@ -1273,8 +1101,7 @@
   async function declineFriendFromNotif(fromUserId, notifId) {
     const btnWrap = document.getElementById(`freq-btns-${notifId}`);
     btnWrap.innerHTML = '<p class="text-[9px] text-white/30 uppercase tracking-widest mt-1">Removing...</p>';
-    await sb.from('friend_requests').delete()
-      .eq('sender_id',fromUserId).eq('receiver_id',currentUser.id).eq('status','pending');
+    await sb.from('friend_requests').delete().eq('sender_id',fromUserId).eq('receiver_id',currentUser.id).eq('status','pending');
     btnWrap.innerHTML = '<p class="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-1">✗ Request Declined</p>';
     toast('Request declined','info');
   }
@@ -1290,17 +1117,11 @@
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`user_id=eq.${currentUser.id}`}, payload => {
         const n = payload.new;
         document.getElementById('notif-dot').classList.remove('hidden');
-        const msg = n.type==='like' ? `❤️ @${n.from_username} liked your post`
-          : n.type==='comment' ? `💬 @${n.from_username} commented on your post`
-          : n.type==='friend_request' ? `👋 @${n.from_username} sent you a friend request — check Alerts!`
-          : n.type==='friend_accepted' ? `✅ @${n.from_username} accepted your friend request`
-          : n.type==='message' ? `📩 @${n.from_username}: ${n.text}`
-          : '🔔 New notification';
+        const msg = n.type==='like'?`❤️ @${n.from_username} liked your post`:n.type==='comment'?`💬 @${n.from_username} commented on your post`:n.type==='friend_request'?`👋 @${n.from_username} sent you a friend request — check Alerts!`:n.type==='friend_accepted'?`✅ @${n.from_username} accepted your friend request`:n.type==='message'?`📩 @${n.from_username}: ${n.text}`:'🔔 New notification';
         toast(msg, n.type==='friend_request'||n.type==='friend_accepted' ? 'success' : 'info');
       }).subscribe();
   }
 
-  // ── HELPERS ──
   function closeModal(id, e) { if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open'); }
 
   function setPostMode(mode) {
@@ -1324,15 +1145,11 @@
   }
 
   window.nav = (tabId) => {
-    // Pause all reel videos when leaving reels tab
-    if (tabId !== 'reels') {
-      document.querySelectorAll('#reels-container video').forEach(v => v.pause());
-    }
+    if (tabId !== 'reels') { document.querySelectorAll('#reels-container video').forEach(v => v.pause()); }
     document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
     const tab=document.getElementById(`tab-${tabId}`); if(tab) tab.classList.add('active');
     const btn=document.querySelector(`[data-tab="${tabId}"]`); if(btn) btn.classList.add('active');
-    // Resume reel playback when returning to reels tab
     if (tabId === 'reels') {
       const firstVisible = document.querySelector('#reels-container .reel-item video');
       if (firstVisible) firstVisible.play().catch(()=>{});
@@ -1343,7 +1160,29 @@
 
   function loadSettingsPage() {
     const usernameEl = document.getElementById('settings-username');
-    if (usernameEl && myProfile?.username) usernameEl.innerText = '@' + myProfile.username;
+    if (usernameEl && myProfile?.username) usernameEl.innerText = 'Current: @' + myProfile.username;
+    const inputEl = document.getElementById('settings-new-username');
+    if (inputEl) inputEl.value = '';
+  }
+
+  async function changeUsername() {
+    const newUsername = document.getElementById('settings-new-username').value.toLowerCase().trim();
+    if (!newUsername || newUsername.length < 3) { toast('Username must be at least 3 chars', 'error'); return; }
+    if (!/^[a-z0-9_]+$/.test(newUsername)) { toast('Only letters, numbers, underscores', 'error'); return; }
+    if (newUsername === myProfile?.username) { toast('That is already your username!', 'info'); return; }
+    // Check if taken
+    const { data: existing } = await sb.from('profiles').select('username').eq('username', newUsername).single();
+    if (existing) { toast('Username already taken!', 'error'); return; }
+    const { error } = await sb.from('profiles').update({ username: newUsername }).eq('id', currentUser.id);
+    if (error) { toast('Failed: ' + error.message, 'error'); return; }
+    myProfile = { ...myProfile, username: newUsername };
+    // Update all UI references
+    document.getElementById('header-user').innerText = '@' + newUsername;
+    document.getElementById('profile-user').innerText = '@' + newUsername;
+    document.getElementById('profile-initials').innerText = newUsername[0].toUpperCase();
+    document.getElementById('settings-username').innerText = 'Current: @' + newUsername;
+    document.getElementById('settings-new-username').value = '';
+    toast('Username updated! ✅', 'success');
   }
 
   async function changePassword() {
@@ -1378,4 +1217,4 @@
   });
 </script>
 </body>
-</html>
+  </html>
