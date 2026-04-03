@@ -1172,7 +1172,7 @@
 
           </div>
 
-          <p style="font-size:13px;color:rgba(255,255,255,0.82);line-height:1.65;margin-bottom:14px;padding-left:2px;">${escapeHtml(p.content)}</p>
+          <p class="post-text" style="font-size:13px;color:rgba(255,255,255,0.82);line-height:1.65;margin-bottom:14px;padding-left:2px;">${escapeHtml(p.content)}</p>
 
           <div style="display:flex;align-items:center;gap:6px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.05);">
 
@@ -1710,7 +1710,7 @@
 
       <div class="glass p-4 rounded-[1.5rem] space-y-2 text-sm border border-white/5">
 
-        <p class="text-white/70 leading-relaxed text-xs">${escapeHtml(p.content)}</p>
+        <p class="post-text text-white/70 leading-relaxed text-xs">${escapeHtml(p.content)}</p>
 
         <p class="text-[9px] text-white/25 uppercase tracking-widest">${timeAgo(p.created_at)} · ${p.likes||0} likes</p>
 
@@ -1876,7 +1876,7 @@
 
       <div class="glass p-4 rounded-2xl space-y-1 border border-white/5">
 
-        <p class="text-xs text-white/70">${escapeHtml(p.content)}</p>
+        <p class="post-text text-xs text-white/70">${escapeHtml(p.content)}</p>
 
         <p class="text-[9px] text-white/25 uppercase tracking-widest">${timeAgo(p.created_at)} · ${p.likes||0} likes</p>
 
@@ -2130,9 +2130,9 @@
 
         <div class="flex-1 min-w-0">
 
-          <p class="text-xs font-bold text-white/80"><span class="text-cyan-400">@${n.from_username||'someone'}</span> ${labelText}</p>
+          <p class="notif-text text-xs font-bold text-white/80"><span class="text-cyan-400">@${n.from_username||'someone'}</span> ${labelText}</p>
 
-          ${n.text&&n.type!=='like'&&n.type!=='friend_request'&&n.type!=='friend_accepted'?`<p class="text-[10px] text-white/40 mt-1 italic">"${escapeHtml(n.text)}"</p>`:''}
+          ${n.text&&n.type!=='like'&&n.type!=='friend_request'&&n.type!=='friend_accepted'?`<p class="notif-text text-[10px] text-white/40 mt-1 italic">"${escapeHtml(n.text)}"</p>`:''}
 
           <p class="text-[9px] text-white/20 mt-1 uppercase tracking-widest">${timeAgo(n.created_at)}</p>
 
@@ -2374,6 +2374,9 @@
         el.style.borderColor = 'rgba(0,0,0,0.1)';
       });
       document.getElementById('app-shell').style.background = '#f0f4f8';
+      // Make post text, notification text, and profile post text black in day mode
+      document.querySelectorAll('.post-text').forEach(el => { el.style.color = '#0a0a0f'; });
+      document.querySelectorAll('.notif-text').forEach(el => { el.style.color = '#0a0a0f'; });
     } else {
       document.body.style.background = '#020203';
       document.body.style.color = 'white';
@@ -2385,6 +2388,9 @@
         el.style.borderColor = '';
       });
       document.getElementById('app-shell').style.background = '#050505';
+      // Restore white text in dark mode
+      document.querySelectorAll('.post-text').forEach(el => { el.style.color = ''; });
+      document.querySelectorAll('.notif-text').forEach(el => { el.style.color = ''; });
     }
   }
 
