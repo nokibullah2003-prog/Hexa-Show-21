@@ -276,9 +276,9 @@
 
     <div class="space-y-3">
 
-      <input type="text" id="auth-username" placeholder="e.g. nokib22" maxlength="20" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm outline-none focus:border-cyan-400/50 transition-colors" />
+      <input type="text" id="auth-username" placeholder="e.g. nokib22" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm outline-none focus:border-cyan-400/50 transition-colors" />
 
-      <input type="number" id="auth-password" placeholder="e.g. 125690 (numbers only)" minlength="6" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm outline-none focus:border-cyan-400/50 transition-colors" />
+      <input type="number" id="auth-password" placeholder="e.g. 125690 (numbers only)" minlength="6" autocomplete="new-password" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm outline-none focus:border-cyan-400/50 transition-colors" />
 
       <button id="auth-submit" onclick="handleAuth()" class="btn-press w-full bg-cyan-400 text-black font-display font-black py-4 rounded-2xl text-xs uppercase tracking-widest mt-2">SIGN UP</button>
 
@@ -939,36 +939,36 @@
 
 
   function toggleAuthMode() {
-
     authMode = authMode === 'signup' ? 'login' : 'signup';
-
     document.getElementById('auth-title').innerHTML = authMode==='signup' ? 'CREATE AN <span class="text-cyan-400">ACCOUNT</span>' : 'LOG IN YOUR <span class="text-cyan-400">ID</span>';
-
     document.getElementById('auth-submit').innerText = authMode==='signup' ? 'SIGN UP' : 'LOG IN';
-
     document.getElementById('auth-toggle').innerText = authMode==='signup' ? 'Already have an account? Log in' : 'New here? Sign up';
-
     document.getElementById('auth-msg').className = 'hidden';
-
+    // Clear fields so browser autofill never silently prefills wrong credentials
+    document.getElementById('auth-username').value = '';
+    document.getElementById('auth-password').value = '';
   }
 
 
 
   function showAuth() {
-
     document.getElementById('loading-screen').classList.add('hidden');
-
     document.getElementById('auth-portal').classList.remove('hidden');
-
+    // Always clear so browser autofill can't silently inject old credentials
+    setTimeout(() => {
+      document.getElementById('auth-username').value = '';
+      document.getElementById('auth-password').value = '';
+    }, 100);
   }
 
 
 
   async function handleAuth() {
-
-    const username = document.getElementById('auth-username').value.toLowerCase().trim();
-
-    const password = document.getElementById('auth-password').value;
+    // Snapshot credentials immediately before any async gap (prevents autofill race)
+    const usernameEl = document.getElementById('auth-username');
+    const passwordEl = document.getElementById('auth-password');
+    const username = usernameEl.value.toLowerCase().trim();
+    const password = passwordEl.value;
 
     const btn = document.getElementById('auth-submit');
 
@@ -998,6 +998,7 @@
 
         await sb.from('profiles').insert({ id: data.user.id, username, email: uniqueEmail, created_at: new Date().toISOString() });
 
+        usernameEl.value = ''; passwordEl.value = '';
         currentUser = data.user; await startApp();
 
       } else {
@@ -1012,6 +1013,7 @@
 
         if (error) throw error;
 
+        usernameEl.value = ''; passwordEl.value = '';
         currentUser = data.user; await startApp();
 
       }
@@ -2422,9 +2424,20 @@
     if (newUsername === myProfile?.username) { toast('That is already your username!', 'info'); return; }
     const { data: existing } = await sb.from('profiles').select('username').eq('username', newUsername).single();
     if (existing) { toast('Username already taken!', 'error'); return; }
-    const { error } = await sb.from('profiles').update({ username: newUsername }).eq('id', currentUser.id);
+
+    // Build a new unique email that matches the new username (keeps auth email in sync)
+    const newEmail = myProfile?.email
+      ? myProfile.email.replace(/^[^_]+/, newUsername)   // swap the username prefix
+      : `${newUsername}_${Math.random().toString(36).slice(2,8)}@hexashow.io`;
+
+    // Update profiles table (username + email)
+    const { error } = await sb.from('profiles').update({ username: newUsername, email: newEmail }).eq('id', currentUser.id);
     if (error) { toast('Failed: ' + error.message, 'error'); return; }
-    myProfile = { ...myProfile, username: newUsername };
+
+    // Update Supabase Auth email so future logins still work
+    await sb.auth.updateUser({ email: newEmail }).catch(() => {});
+
+    myProfile = { ...myProfile, username: newUsername, email: newEmail };
     document.getElementById('header-user').innerText = '@' + newUsername;
     document.getElementById('profile-user').innerText = '@' + newUsername;
     document.getElementById('profile-initials').innerText = newUsername[0].toUpperCase();
