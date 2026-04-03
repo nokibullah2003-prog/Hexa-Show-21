@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 
 <html lang="en">
@@ -2431,19 +2432,11 @@
     const { data: existing } = await sb.from('profiles').select('username').eq('username', newUsername).single();
     if (existing) { toast('Username already taken!', 'error'); return; }
 
-    // Build a new unique email that matches the new username (keeps auth email in sync)
-    const newEmail = myProfile?.email
-      ? myProfile.email.replace(/^[^_]+/, newUsername)   // swap the username prefix
-      : `${newUsername}_${Math.random().toString(36).slice(2,8)}@hexashow.io`;
-
-    // Update profiles table (username + email)
-    const { error } = await sb.from('profiles').update({ username: newUsername, email: newEmail }).eq('id', currentUser.id);
+    // Only update the username in the profiles table (do NOT touch auth email)
+    const { error } = await sb.from('profiles').update({ username: newUsername }).eq('id', currentUser.id);
     if (error) { toast('Failed: ' + error.message, 'error'); return; }
 
-    // Update Supabase Auth email so future logins still work
-    await sb.auth.updateUser({ email: newEmail }).catch(() => {});
-
-    myProfile = { ...myProfile, username: newUsername, email: newEmail };
+    myProfile = { ...myProfile, username: newUsername };
     document.getElementById('header-user').innerText = '@' + newUsername;
     document.getElementById('profile-user').innerText = '@' + newUsername;
     document.getElementById('profile-initials').innerText = newUsername[0].toUpperCase();
