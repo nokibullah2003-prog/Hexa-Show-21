@@ -307,11 +307,16 @@
 
       <h3 class="text-lg font-display font-black italic uppercase">Comments</h3>
 
-      <button onclick="document.getElementById('comments-modal').classList.remove('open')" class="text-white/30 text-xs uppercase tracking-widest">Close</button>
+      <button onclick="document.getElementById('comments-modal').classList.remove('open');cancelReply();" class="text-white/30 text-xs uppercase tracking-widest">Close</button>
 
     </div>
 
-    <div id="comments-list" class="space-y-3 mb-4 max-h-60 overflow-y-auto"></div>
+    <div id="comments-list" class="space-y-3 mb-4 max-h-72 overflow-y-auto"></div>
+
+    <div id="reply-banner" style="display:none;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);border-radius:12px;padding:6px 12px;margin-bottom:8px;display:none;align-items:center;justify-content:space-between;">
+      <p id="reply-label" style="font-size:10px;color:#22d3ee;font-weight:700;">Replying to @someone</p>
+      <button onclick="cancelReply()" style="font-size:9px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;text-transform:uppercase;letter-spacing:0.1em;">✕ Cancel</button>
+    </div>
 
     <div class="flex gap-2">
 
@@ -758,16 +763,22 @@
 
     </div>
 
-    <div class="space-y-3">
+    <!-- Tab switcher: Posts / Reels -->
+    <div style="display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:0;margin-bottom:0;">
+      <button id="profile-tab-posts" onclick="switchProfileTab('posts')" style="flex:1;padding:10px 0;font-family:'Syne',sans-serif;font-weight:900;font-size:10px;text-transform:uppercase;letter-spacing:0.15em;color:#22d3ee;background:none;border:none;border-bottom:2px solid #22d3ee;cursor:pointer;transition:all 0.2s;">Posts</button>
+      <button id="profile-tab-reels" onclick="switchProfileTab('reels')" style="flex:1;padding:10px 0;font-family:'Syne',sans-serif;font-weight:900;font-size:10px;text-transform:uppercase;letter-spacing:0.15em;color:rgba(255,255,255,0.25);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all 0.2s;">Reels</button>
+    </div>
 
-      <h4 class="text-[9px] font-bold text-white/20 uppercase tracking-[0.4em] px-2">My Posts</h4>
-
+    <div id="profile-panel-posts" class="space-y-3">
       <div id="my-posts" class="space-y-3">
-
         <div class="glass p-4 rounded-[2rem] text-center text-white/20 text-xs">No posts yet!</div>
-
       </div>
+    </div>
 
+    <div id="profile-panel-reels" style="display:none;">
+      <div id="my-reels-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+        <div class="glass p-4 rounded-[2rem] text-center text-white/20 text-xs" style="grid-column:span 2;">No reels yet!</div>
+      </div>
     </div>
 
   </div>
@@ -1298,6 +1309,23 @@
 
 
 
+  let replyingTo = null; // { commentId, username }
+
+  function setReply(commentId, username) {
+    replyingTo = { commentId, username };
+    const banner = document.getElementById('reply-banner');
+    banner.style.display = 'flex';
+    document.getElementById('reply-label').innerText = 'Replying to @' + username;
+    document.getElementById('comment-input').placeholder = 'Write a reply...';
+    document.getElementById('comment-input').focus();
+  }
+
+  function cancelReply() {
+    replyingTo = null;
+    document.getElementById('reply-banner').style.display = 'none';
+    document.getElementById('comment-input').placeholder = 'Add a comment...';
+  }
+
   async function loadComments() {
 
     const field = currentCommentType==='post' ? 'post_id' : 'reel_id';
@@ -1308,23 +1336,38 @@
 
     if (!comments?.length) { list.innerHTML = '<div class="text-white/20 text-xs text-center py-4">No comments yet. Be first!</div>'; return; }
 
-    list.innerHTML = comments.map(c => `
+    // Separate top-level comments and replies
+    const topLevel = comments.filter(c => !c.reply_to);
+    const replies = comments.filter(c => c.reply_to);
 
+    list.innerHTML = topLevel.map(c => {
+      const commentReplies = replies.filter(r => r.reply_to === c.id);
+      const repliesHtml = commentReplies.map(r => `
+        <div class="flex items-start gap-2 mt-2 ml-4 pl-3" style="border-left:2px solid rgba(34,211,238,0.2);">
+          <div class="av" style="width:26px;height:26px;font-size:0.65rem;flex-shrink:0;">${(r.username||'?')[0].toUpperCase()}</div>
+          <div class="glass px-3 py-2 rounded-2xl flex-1" style="border:1px solid rgba(34,211,238,0.15);">
+            <p class="text-[10px] font-bold text-cyan-400">@${r.username||'unknown'}</p>
+            <p class="text-xs text-white/70 mt-0.5">${escapeHtml(r.content)}</p>
+            <p class="text-[8px] text-white/20 mt-1 uppercase tracking-widest">${timeAgo(r.created_at)}</p>
+          </div>
+        </div>`).join('');
+
+      return `
       <div class="flex items-start gap-2">
-
         <div class="av" style="width:32px;height:32px;font-size:0.75rem;flex-shrink:0;">${(c.username||'?')[0].toUpperCase()}</div>
-
-        <div class="glass px-3 py-2 rounded-2xl flex-1">
-
-          <p class="text-[10px] font-bold text-cyan-400">@${c.username||'unknown'}</p>
-
-          <p class="text-xs text-white/70 mt-0.5">${escapeHtml(c.content)}</p>
-
-          <p class="text-[8px] text-white/20 mt-1 uppercase tracking-widest">${timeAgo(c.created_at)}</p>
-
+        <div class="flex-1">
+          <div class="glass px-3 py-2 rounded-2xl" style="border:1px solid rgba(34,211,238,0.15);">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <p class="text-[10px] font-bold text-cyan-400">@${c.username||'unknown'}</p>
+              <button onclick="setReply('${c.id}','${c.username}')" style="font-size:8px;color:rgba(255,255,255,0.3);background:none;border:none;cursor:pointer;text-transform:uppercase;letter-spacing:0.1em;padding:2px 6px;border-radius:8px;transition:color 0.2s;" onmouseenter="this.style.color='#22d3ee'" onmouseleave="this.style.color='rgba(255,255,255,0.3)'">↩ Reply</button>
+            </div>
+            <p class="text-xs text-white/70 mt-0.5">${escapeHtml(c.content)}</p>
+            <p class="text-[8px] text-white/20 mt-1 uppercase tracking-widest">${timeAgo(c.created_at)}</p>
+          </div>
+          ${repliesHtml}
         </div>
-
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
     list.scrollTop = list.scrollHeight;
 
@@ -1340,7 +1383,15 @@
 
     const field = currentCommentType==='post' ? 'post_id' : 'reel_id';
 
-    await sb.from('comments').insert({ user_id: currentUser.id, username: myProfile?.username, [field]: currentCommentTarget, content });
+    const commentData = { user_id: currentUser.id, username: myProfile?.username, [field]: currentCommentTarget, content };
+    if (replyingTo?.commentId) commentData.reply_to = replyingTo.commentId;
+    const { error: insertErr } = await sb.from('comments').insert(commentData);
+    if (insertErr && replyingTo?.commentId) {
+      // reply_to column may not exist yet — fallback insert without it
+      const { reply_to, ...baseData } = commentData;
+      await sb.from('comments').insert(baseData);
+    }
+    cancelReply();
 
     document.getElementById('comment-input').value = '';
 
@@ -1740,6 +1791,62 @@
 
 
 
+  function switchProfileTab(tab) {
+    const postsBtn = document.getElementById('profile-tab-posts');
+    const reelsBtn = document.getElementById('profile-tab-reels');
+    const postsPanel = document.getElementById('profile-panel-posts');
+    const reelsPanel = document.getElementById('profile-panel-reels');
+    if (tab === 'posts') {
+      postsBtn.style.color = '#22d3ee'; postsBtn.style.borderBottom = '2px solid #22d3ee';
+      reelsBtn.style.color = 'rgba(255,255,255,0.25)'; reelsBtn.style.borderBottom = '2px solid transparent';
+      postsPanel.style.display = ''; reelsPanel.style.display = 'none';
+    } else {
+      reelsBtn.style.color = '#22d3ee'; reelsBtn.style.borderBottom = '2px solid #22d3ee';
+      postsBtn.style.color = 'rgba(255,255,255,0.25)'; postsBtn.style.borderBottom = '2px solid transparent';
+      reelsPanel.style.display = ''; postsPanel.style.display = 'none';
+      loadMyReels();
+    }
+  }
+
+  async function loadMyReels() {
+    const grid = document.getElementById('my-reels-grid');
+    if (!grid) return;
+    grid.innerHTML = '<div class="glass p-4 rounded-2xl text-center text-white/20 text-xs" style="grid-column:span 2;">Loading...</div>';
+    const { data: reels } = await sb.from('reels').select('*').eq('user_id', currentUser.id).order('created_at', {ascending:false});
+    if (!reels?.length) {
+      grid.innerHTML = '<div class="glass p-4 rounded-[2rem] text-center text-white/20 text-xs" style="grid-column:span 2;">No reels yet! Upload your first reel. 🎬</div>';
+      return;
+    }
+    grid.innerHTML = reels.map(r => `
+      <div style="position:relative;border-radius:16px;overflow:hidden;aspect-ratio:9/16;border:1.5px solid rgba(34,211,238,0.25);background:#000;cursor:pointer;" onclick="playProfileReel('${r.video_url}','${escapeHtml(r.caption||'')}')">
+        <video src="${r.video_url}#t=0.5" style="width:100%;height:100%;object-fit:cover;display:block;" preload="metadata" muted playsinline></video>
+        <div style="position:absolute;inset:0;background:linear-gradient(transparent 50%,rgba(0,0,0,0.8));display:flex;flex-direction:column;justify-content:flex-end;padding:8px;">
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
+            <svg viewBox="0 0 24 24" style="width:10px;height:10px;color:#f472b6;" fill="#f472b6" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span style="font-size:9px;color:white;font-weight:700;">${r.likes||0}</span>
+          </div>
+          ${r.caption ? `<p style="font-size:8px;color:rgba(255,255,255,0.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(r.caption)}</p>` : ''}
+        </div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.5);border:1.5px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;margin-left:2px;" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+      </div>`).join('');
+  }
+
+  function playProfileReel(url, caption) {
+    // Open a simple fullscreen reel viewer
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:300;background:#000;display:flex;flex-direction:column;';
+    overlay.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;position:absolute;top:0;left:0;right:0;z-index:1;">
+        <button onclick="this.closest('div[style]').remove()" style="width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.2);color:white;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+        ${caption ? `<p style="font-size:11px;color:rgba(255,255,255,0.7);max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${caption}</p>` : ''}
+        <div style="width:36px;"></div>
+      </div>
+      <video src="${url}" style="width:100%;height:100%;object-fit:contain;" autoplay loop playsinline controls></video>`;
+    document.body.appendChild(overlay);
+  }
+
   async function loadMyPosts(username) {
 
     const { data: posts } = await sb.from('posts').select('*').eq('username',username).order('created_at',{ascending:false});
@@ -2029,7 +2136,7 @@
 
       return `
 
-      <div class="glass p-4 rounded-2xl flex items-center gap-3 cursor-pointer btn-press" onclick="openChatWith('${pid}', ${JSON.stringify(partner).replace(/"/g,"'")})">
+      <div class="glass p-4 rounded-2xl flex items-center gap-3 cursor-pointer btn-press" style="border:1px solid rgba(34,211,238,0.22);" onclick="openChatWith('${pid}', ${JSON.stringify(partner).replace(/"/g,"'")})">
 
         <div class="av flex-shrink-0">${(partner.username||'?')[0].toUpperCase()}</div>
 
@@ -2246,7 +2353,7 @@
 
       return `
 
-      <div class="notif-item glass p-4 rounded-2xl flex items-start gap-3 border ${unread?'border-cyan-400/20':'border-white/5'}" style="animation-delay:${i*0.04}s">
+      <div class="notif-item glass p-4 rounded-2xl flex items-start gap-3" style="border:1px solid rgba(34,211,238,0.22);animation-delay:${i*0.04}s">
 
         <div class="text-xl flex-shrink-0 mt-0.5">${icon}</div>
 
