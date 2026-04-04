@@ -277,9 +277,9 @@
 
     <div class="space-y-3">
 
-      <input type="text" id="auth-username" placeholder="e.g. nokib22" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm outline-none focus:border-cyan-400/50 transition-colors" />
+      <input type="text" id="auth-username" placeholder="username e.g. nokib22" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm outline-none focus:border-cyan-400/50 transition-colors" />
 
-      <input type="number" id="auth-password" placeholder="e.g. 125690 (numbers only)" minlength="6" autocomplete="new-password" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm outline-none focus:border-cyan-400/50 transition-colors" />
+      <input type="number" id="auth-password" placeholder="password e.g. 125690 (only numbers)" minlength="6" autocomplete="new-password" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm outline-none focus:border-cyan-400/50 transition-colors" />
 
       <button id="auth-submit" onclick="handleAuth()" class="btn-press w-full bg-cyan-400 text-black font-display font-black py-4 rounded-2xl text-xs uppercase tracking-widest mt-2">SIGN UP</button>
 
@@ -677,34 +677,6 @@
 
         <div style="padding:16px;">
 
-          <!-- Account Section -->
-          <p style="font-size:8px;color:rgba(34,211,238,0.5);text-transform:uppercase;letter-spacing:0.3em;font-weight:700;margin-bottom:10px;padding-left:2px;">Account</p>
-
-          <!-- Change Username -->
-          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:14px;margin-bottom:10px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-              <div style="width:30px;height:30px;border-radius:50%;background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <svg viewBox="0 0 24 24" style="width:13px;height:13px;" fill="none" stroke="#22d3ee" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </div>
-              <p style="font-size:11px;color:rgba(255,255,255,0.85);font-weight:600;">Change Username</p>
-            </div>
-            <input type="text" id="ps-new-username" placeholder="New username" maxlength="20" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:9px 12px;color:white;font-size:11px;outline:none;box-sizing:border-box;font-family:'DM Mono',monospace;" onfocus="this.style.borderColor='rgba(34,211,238,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
-            <p id="ps-username-current" style="font-size:8px;color:rgba(255,255,255,0.25);margin-top:5px;padding-left:2px;">Current: —</p>
-            <button onclick="psChangeUsername()" style="margin-top:8px;width:100%;background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.25);border-radius:10px;padding:9px;color:#22d3ee;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;cursor:pointer;" class="btn-press">Update Username</button>
-          </div>
-
-          <!-- Change Password -->
-          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:14px;margin-bottom:16px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-              <div style="width:30px;height:30px;border-radius:50%;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <svg viewBox="0 0 24 24" style="width:13px;height:13px;" fill="none" stroke="#a78bfa" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              </div>
-              <p style="font-size:11px;color:rgba(255,255,255,0.85);font-weight:600;">Change Password</p>
-            </div>
-            <input type="number" id="ps-new-password" placeholder="New password (numbers only)" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:9px 12px;color:white;font-size:11px;outline:none;box-sizing:border-box;font-family:'DM Mono',monospace;" onfocus="this.style.borderColor='rgba(167,139,250,0.4)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
-            <button onclick="psChangePassword()" style="margin-top:8px;width:100%;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.25);border-radius:10px;padding:9px;color:#a78bfa;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;cursor:pointer;" class="btn-press">Update Password</button>
-          </div>
-
           <!-- Appearance Section -->
           <p style="font-size:8px;color:rgba(34,211,238,0.5);text-transform:uppercase;letter-spacing:0.3em;font-weight:700;margin-bottom:10px;padding-left:2px;">Appearance</p>
           <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:14px;margin-bottom:16px;">
@@ -738,7 +710,7 @@
       <!-- Settings gear in top-left -->
       <div style="position:relative;">
         <button onclick="openProfileSettings()" style="position:absolute;left:0;top:0;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" onmouseenter="this.style.background='rgba(34,211,238,0.1)';this.style.borderColor='rgba(34,211,238,0.3)'" onmouseleave="this.style.background='rgba(255,255,255,0.05)';this.style.borderColor='rgba(255,255,255,0.1)'" class="btn-press">
-          <svg viewBox="0 0 24 24" style="width:15px;height:15px;" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <svg viewBox="0 0 24 24" style="width:15px;height:15px;" fill="none" stroke="#22d3ee" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </button>
 
       <div class="relative w-24 h-24 mx-auto mb-4" onclick="document.getElementById('avatar-file-input').click()">
@@ -826,6 +798,22 @@
 
 
 
+  <!-- Messages Tab -->
+
+  <div id="tab-messages" class="tab-content p-5 space-y-4 pb-8">
+
+    <h2 class="text-2xl font-display font-black italic uppercase tracking-tighter">MESSAGES <span class="text-cyan-400">💬</span></h2>
+
+    <div id="messages-inbox" class="space-y-3">
+
+      <div class="glass p-4 rounded-2xl text-center text-white/20 text-xs">Loading conversations...</div>
+
+    </div>
+
+  </div>
+
+
+
   <!-- Bottom Nav -->
 
   <nav class="h-[72px] bg-black/80 backdrop-blur-2xl border-t border-white/5 flex items-center justify-around px-2 pb-2 flex-shrink-0">
@@ -852,17 +840,17 @@
 
     </button>
 
-    <button onclick="nav('notifications');loadNotifications()" data-tab="notifications" class="nav-btn relative flex flex-col items-center gap-1 p-2">
+    <button onclick="nav('messages');loadInbox()" data-tab="messages" class="nav-btn relative flex flex-col items-center gap-1 p-2">
 
       <div class="relative">
 
-        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
 
-        <span id="notif-dot" class="notif-dot hidden"></span>
+        <span id="msg-dot" class="notif-dot hidden"></span>
 
       </div>
 
-      <span class="text-[8px] uppercase tracking-widest">Alerts</span>
+      <span class="text-[8px] uppercase tracking-widest">Messages</span>
 
     </button>
 
@@ -902,6 +890,7 @@
   let chatUserId = null, chatChannel = null;
 
   let myProfile = null;
+  let profileAvatarMap = {};
 
 
 
@@ -998,6 +987,7 @@
         if (error) throw error;
 
         await sb.from('profiles').insert({ id: data.user.id, username, email: uniqueEmail, created_at: new Date().toISOString() });
+        myProfile = { id: data.user.id, username, email: uniqueEmail, created_at: new Date().toISOString() };
 
         usernameEl.value = ''; passwordEl.value = '';
         currentUser = data.user; await startApp();
@@ -1061,9 +1051,16 @@
 
     const { data: profile } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
 
-    myProfile = profile;
+    // Use DB profile if available, otherwise fall back to the myProfile set during signup
+    myProfile = profile || myProfile;
 
-    const username = profile?.username || 'user';
+    // Pre-populate avatar map with current user's avatar
+    if (myProfile?.avatar_url) profileAvatarMap[currentUser.id] = myProfile.avatar_url;
+
+    const username = myProfile?.username || 'user';
+
+    // Use profile created_at, or Auth user created_at, or current time as fallback
+    const createdAt = myProfile?.created_at || currentUser?.created_at || new Date().toISOString();
 
     document.getElementById('header-user').innerText = `@${username}`;
 
@@ -1071,9 +1068,7 @@
 
     document.getElementById('profile-initials').innerText = username[0].toUpperCase();
 
-    document.getElementById('stat-joined').innerText = profile?.created_at
-
-      ? new Date(profile.created_at).toLocaleDateString('en',{month:'short',year:'2-digit'}) : '—';
+    document.getElementById('stat-joined').innerText = new Date(createdAt).toLocaleDateString('en',{month:'short',year:'2-digit'});
 
     if (profile?.avatar_url) {
 
@@ -1089,7 +1084,9 @@
 
     const { count } = await sb.from('notifications').select('id',{count:'exact',head:true}).eq('user_id',currentUser.id).eq('is_read',false);
 
-    if (count > 0) document.getElementById('notif-dot').classList.remove('hidden');
+    // Check unread message notifications
+    const { count: msgCount } = await sb.from('notifications').select('id',{count:'exact',head:true}).eq('user_id',currentUser.id).eq('is_read',false).eq('type','message');
+    if (msgCount > 0) document.getElementById('msg-dot').classList.remove('hidden');
 
   }
 
@@ -1104,6 +1101,17 @@
     const { data: likes } = await sb.from('post_likes').select('post_id').eq('user_id', currentUser.id);
 
     likedPosts = new Set((likes||[]).map(l=>l.post_id));
+
+    // Fetch avatars for all post authors
+    const userIds = [...new Set((allPosts).map(p=>p.user_id).filter(Boolean))];
+
+    if (userIds.length) {
+
+      const { data: profilesData } = await sb.from('profiles').select('id,avatar_url').in('id', userIds);
+
+      (profilesData||[]).forEach(pr => { profileAvatarMap[pr.id] = pr.avatar_url || null; });
+
+    }
 
     renderFeed(allPosts,'feed-container');
 
@@ -1155,11 +1163,7 @@
 
           <div style="display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:12px;" onclick="openUserProfile('${p.user_id}')">
 
-            <div style="width:42px;height:42px;border-radius:50%;background:${color}18;border:2px solid ${color}40;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:900;font-size:16px;color:${color};flex-shrink:0;">
-
-              ${(p.username||'?')[0].toUpperCase()}
-
-            </div>
+            ${profileAvatarMap[p.user_id] ? `<img src="${profileAvatarMap[p.user_id]}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid ${color}40;flex-shrink:0;" />` : `<div style="width:42px;height:42px;border-radius:50%;background:${color}18;border:2px solid ${color}40;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:900;font-size:16px;color:${color};flex-shrink:0;">${(p.username||'?')[0].toUpperCase()}</div>`}
 
             <div style="flex:1;min-width:0;">
 
@@ -1347,6 +1351,17 @@
 
     likedReels = new Set((rlikes||[]).map(l=>l.reel_id));
 
+    // Fetch avatars for all reel authors
+    const reelUserIds = [...new Set((reels||[]).map(r=>r.user_id).filter(Boolean))];
+
+    if (reelUserIds.length) {
+
+      const { data: reelProfiles } = await sb.from('profiles').select('id,avatar_url').in('id', reelUserIds);
+
+      (reelProfiles||[]).forEach(pr => { profileAvatarMap[pr.id] = pr.avatar_url || null; });
+
+    }
+
     const container = document.getElementById('reels-container');
 
     const empty = document.getElementById('reels-empty');
@@ -1407,11 +1422,7 @@
 
           <div style="display:flex;align-items:flex-end;gap:12px;" onclick="openUserProfile('${r.user_id}');event.stopPropagation()">
 
-            <div style="width:38px;height:38px;border-radius:50%;background:rgba(34,211,238,0.15);border:2px solid rgba(34,211,238,0.5);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:900;font-size:15px;color:#22d3ee;flex-shrink:0;cursor:pointer;">
-
-              ${(r.username||'?')[0].toUpperCase()}
-
-            </div>
+            ${profileAvatarMap[r.user_id] ? `<img src="${profileAvatarMap[r.user_id]}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid rgba(34,211,238,0.5);flex-shrink:0;cursor:pointer;" />` : `<div style="width:38px;height:38px;border-radius:50%;background:rgba(34,211,238,0.15);border:2px solid rgba(34,211,238,0.5);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:900;font-size:15px;color:#22d3ee;flex-shrink:0;cursor:pointer;">${(r.username||'?')[0].toUpperCase()}</div>`}
 
             <div style="flex:1;cursor:pointer;">
 
@@ -1660,6 +1671,7 @@
       await sb.from('profiles').update({avatar_url:avatarUrl}).eq('id',currentUser.id);
 
       myProfile = {...myProfile, avatar_url:avatarUrl};
+      profileAvatarMap[currentUser.id] = avatarUrl;
 
       document.getElementById('profile-avatar-display').innerHTML = `<img src="${avatarUrl}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid rgba(34,211,238,0.4);" />`;
 
@@ -1711,9 +1723,9 @@
 
       <div class="glass p-4 rounded-[1.5rem] space-y-2 text-sm border border-white/5">
 
-        <p class="post-text text-white/70 leading-relaxed text-xs">${escapeHtml(p.content)}</p>
+        <p class="post-text text-xs leading-relaxed" style="color:${isDayMode?'#0a0a0f':'rgba(255,255,255,0.7)'}">${escapeHtml(p.content)}</p>
 
-        <p class="text-[9px] text-white/25 uppercase tracking-widest">${timeAgo(p.created_at)} · ${p.likes||0} likes</p>
+        <p class="text-[9px] uppercase tracking-widest" style="color:${isDayMode?'#0a0a0f':'rgba(255,255,255,0.25)'}">${timeAgo(p.created_at)} · ${p.likes||0} likes</p>
 
       </div>`).join('');
 
@@ -1741,9 +1753,9 @@
 
         <div class="flex-1 cursor-pointer" onclick="openUserProfile('${p.id}')">
 
-          <p class="text-sm font-display font-black italic">@${p.username}</p>
+          <p class="text-sm font-display font-black italic" style="color:${isDayMode?'#0a0a0f':'white'}">@${p.username}</p>
 
-          <p class="text-[9px] text-white/30 uppercase tracking-widest">Friend</p>
+          <p class="text-[9px] uppercase tracking-widest" style="color:${isDayMode?'#0a0a0f':'rgba(255,255,255,0.3)'}">Friend</p>
 
         </div>
 
@@ -1935,6 +1947,86 @@
 
 
 
+  async function loadInbox() {
+
+    const inbox = document.getElementById('messages-inbox');
+
+    inbox.innerHTML = '<div class="glass p-4 rounded-2xl text-center text-white/20 text-xs">Loading...</div>';
+
+    // Get all messages involving current user
+    const { data: msgs, error } = await sb.from('messages').select('*')
+
+      .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
+
+      .order('created_at', {ascending: false});
+
+    if (error || !msgs || !msgs.length) {
+
+      inbox.innerHTML = '<div class="glass p-6 rounded-2xl text-center text-white/20 text-xs">No conversations yet.<br/>Find friends and start chatting! 💬</div>';
+
+      return;
+
+    }
+
+    // Group by conversation partner
+    const conversations = {};
+
+    msgs.forEach(m => {
+
+      const partnerId = m.sender_id === currentUser.id ? m.receiver_id : m.sender_id;
+
+      if (!conversations[partnerId]) conversations[partnerId] = m;
+
+    });
+
+    // Fetch partner profiles
+    const partnerIds = Object.keys(conversations);
+
+    const { data: profiles } = await sb.from('profiles').select('id, username').in('id', partnerIds);
+
+    const profileMap = {};
+
+    (profiles||[]).forEach(p => { profileMap[p.id] = p; });
+
+    inbox.innerHTML = partnerIds.map(pid => {
+
+      const lastMsg = conversations[pid];
+
+      const partner = profileMap[pid] || { username: 'unknown' };
+
+      const isMe = lastMsg.sender_id === currentUser.id;
+
+      const preview = (isMe ? 'You: ' : '') + (lastMsg.content.length > 40 ? lastMsg.content.slice(0,40)+'…' : lastMsg.content);
+
+      return `
+
+      <div class="glass p-4 rounded-2xl flex items-center gap-3 cursor-pointer btn-press" onclick="openChatWith('${pid}', ${JSON.stringify(partner).replace(/"/g,"'")})">
+
+        <div class="av flex-shrink-0">${(partner.username||'?')[0].toUpperCase()}</div>
+
+        <div class="flex-1 min-w-0">
+
+          <p class="text-sm font-display font-black italic" style="color:${isDayMode?'#0a0a0f':'white'}">@${partner.username}</p>
+
+          <p class="text-[10px] truncate mt-0.5" style="color:${isDayMode?'#0a0a0f':'rgba(255,255,255,0.35)'}">${escapeHtml(preview)}</p>
+
+        </div>
+
+        <p class="text-[8px] uppercase tracking-widest flex-shrink-0" style="color:${isDayMode?'#0a0a0f':'rgba(255,255,255,0.2)'}">${timeAgo(lastMsg.created_at)}</p>
+
+      </div>`;
+
+    }).join('');
+
+    // Mark message notifications as read
+    await sb.from('notifications').update({is_read:true}).eq('user_id',currentUser.id).eq('type','message').eq('is_read',false).then(()=>{}).catch(()=>{});
+
+    document.getElementById('msg-dot').classList.add('hidden');
+
+  }
+
+
+
   async function openChatWith(userId, profile) {
 
     chatUserId = userId;
@@ -2071,7 +2163,7 @@
 
     await sb.from('notifications').update({is_read:true}).eq('user_id',currentUser.id).eq('is_read',false).then(()=>{}).catch(()=>{});
 
-    document.getElementById('notif-dot').classList.add('hidden');
+    document.getElementById('notif-dot') && document.getElementById('notif-dot').classList.add('hidden');
 
     if (!notifs||!notifs.length) { list.innerHTML = '<div class="glass p-6 rounded-2xl text-center text-white/20 text-xs">No notifications yet</div>'; return; }
 
@@ -2131,11 +2223,11 @@
 
         <div class="flex-1 min-w-0">
 
-          <p class="notif-text text-xs font-bold text-white/80"><span class="text-cyan-400">@${n.from_username||'someone'}</span> ${labelText}</p>
+          <p class="notif-text text-xs font-bold" style="color:${isDayMode?'#0a0a0f':'rgba(255,255,255,0.8)'}"><span style="color:${isDayMode?'#0a0a0f':'#22d3ee'}">@${n.from_username||'someone'}</span> ${labelText}</p>
 
-          ${n.text&&n.type!=='like'&&n.type!=='friend_request'&&n.type!=='friend_accepted'?`<p class="notif-text text-[10px] text-white/40 mt-1 italic">"${escapeHtml(n.text)}"</p>`:''}
+          ${n.text&&n.type!=='like'&&n.type!=='friend_request'&&n.type!=='friend_accepted'?`<p class="notif-text text-[10px] mt-1 italic" style="color:${isDayMode?'#0a0a0f':'rgba(255,255,255,0.4)'}">"${escapeHtml(n.text)}"</p>`:''}
 
-          <p class="text-[9px] text-white/20 mt-1 uppercase tracking-widest">${timeAgo(n.created_at)}</p>
+          <p class="text-[9px] mt-1 uppercase tracking-widest" style="color:${isDayMode?'#0a0a0f':'rgba(255,255,255,0.2)'}">${timeAgo(n.created_at)}</p>
 
           ${actionHtml}
 
@@ -2213,9 +2305,14 @@
 
         const n = payload.new;
 
-        document.getElementById('notif-dot').classList.remove('hidden');
+        // Show msg-dot for messages, notif-dot for everything else
+        if (n.type === 'message') {
+          document.getElementById('msg-dot').classList.remove('hidden');
+        } else {
+          document.getElementById('notif-dot') && document.getElementById('notif-dot').classList.remove('hidden');
+        }
 
-        const msg = n.type==='like'?`❤️ @${n.from_username} liked your post`:n.type==='comment'?`💬 @${n.from_username} commented on your post`:n.type==='friend_request'?`👋 @${n.from_username} sent you a friend request — check Alerts!`:n.type==='friend_accepted'?`✅ @${n.from_username} accepted your friend request`:n.type==='message'?`📩 @${n.from_username}: ${n.text}`:'🔔 New notification';
+        const msg = n.type==='like'?`❤️ @${n.from_username} liked your post`:n.type==='comment'?`💬 @${n.from_username} commented on your post`:n.type==='friend_request'?`👋 @${n.from_username} sent you a friend request`:n.type==='friend_accepted'?`✅ @${n.from_username} accepted your friend request`:n.type==='message'?`📩 @${n.from_username}: ${n.text}`:'🔔 New notification';
 
         toast(msg, n.type==='friend_request'||n.type==='friend_accepted' ? 'success' : 'info');
 
@@ -2341,11 +2438,6 @@
     const sheet = document.getElementById('profile-settings-sheet');
     panel.style.display = 'block';
     requestAnimationFrame(() => { sheet.style.transform = 'translateX(0)'; });
-    // Populate current username
-    const el = document.getElementById('ps-username-current');
-    if (el && myProfile?.username) el.innerText = 'Current: @' + myProfile.username;
-    document.getElementById('ps-new-username').value = '';
-    document.getElementById('ps-new-password').value = '';
     updateModeUI();
   }
 
@@ -2378,6 +2470,21 @@
       // Make post text, notification text, and profile post text black in day mode
       document.querySelectorAll('.post-text').forEach(el => { el.style.color = '#0a0a0f'; });
       document.querySelectorAll('.notif-text').forEach(el => { el.style.color = '#0a0a0f'; });
+      document.querySelectorAll('#notif-list p, #notif-list span, #notif-list div').forEach(el => { el.style.color = '#0a0a0f'; });
+      document.getElementById('header-user').style.color = '#0a0a0f';
+      document.getElementById('profile-user').style.color = '#0a0a0f';
+      // Settings panel background and text black
+      document.getElementById('profile-settings-sheet').style.background = '#f0f4f8';
+      document.querySelectorAll('#profile-settings-sheet p, #profile-settings-sheet span').forEach(el => { el.style.color = '#0a0a0f'; });
+      // Friends list text black
+      document.querySelectorAll('#friends-list p, #friends-list span').forEach(el => { el.style.color = '#0a0a0f'; });
+      // Since / stats text black
+      document.getElementById('stat-joined').style.color = '#0a0a0f';
+      document.getElementById('stat-shows').style.color = '#0a0a0f';
+      document.getElementById('stat-friends').style.color = '#0a0a0f';
+      document.querySelectorAll('.glass p').forEach(el => { el.style.color = '#0a0a0f'; });
+      // My posts text black
+      document.querySelectorAll('#my-posts p').forEach(el => { el.style.color = '#0a0a0f'; });
     } else {
       document.body.style.background = '#020203';
       document.body.style.color = 'white';
@@ -2392,6 +2499,21 @@
       // Restore white text in dark mode
       document.querySelectorAll('.post-text').forEach(el => { el.style.color = ''; });
       document.querySelectorAll('.notif-text').forEach(el => { el.style.color = ''; });
+      document.querySelectorAll('#notif-list p, #notif-list span, #notif-list div').forEach(el => { el.style.color = ''; });
+      document.getElementById('header-user').style.color = '';
+      document.getElementById('profile-user').style.color = '';
+      // Restore settings panel background and text
+      document.getElementById('profile-settings-sheet').style.background = '#0a0a0f';
+      document.querySelectorAll('#profile-settings-sheet p, #profile-settings-sheet span').forEach(el => { el.style.color = ''; });
+      // Restore friends list text
+      document.querySelectorAll('#friends-list p, #friends-list span').forEach(el => { el.style.color = ''; });
+      // Restore since / stats text
+      document.getElementById('stat-joined').style.color = '';
+      document.getElementById('stat-shows').style.color = '';
+      document.getElementById('stat-friends').style.color = '';
+      document.querySelectorAll('.glass p').forEach(el => { el.style.color = ''; });
+      // Restore my posts text
+      document.querySelectorAll('#my-posts p').forEach(el => { el.style.color = ''; });
     }
   }
 
