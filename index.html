@@ -307,7 +307,7 @@
 
       <h3 class="text-lg font-display font-black italic uppercase">Comments</h3>
 
-      <button onclick="document.getElementById('comments-modal').classList.remove('open');cancelReply();" class="text-white/30 text-xs uppercase tracking-widest">Close</button>
+      <button onclick="document.getElementById('comments-modal').classList.remove('open');cancelReply();closeMentionDropdown();" class="text-white/30 text-xs uppercase tracking-widest">Close</button>
 
     </div>
 
@@ -318,9 +318,16 @@
       <button onclick="cancelReply()" style="font-size:9px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer;text-transform:uppercase;letter-spacing:0.1em;">✕ Cancel</button>
     </div>
 
+    <!-- @mention autocomplete dropdown -->
+    <div id="mention-dropdown" style="display:none;position:relative;margin-bottom:6px;">
+      <div id="mention-list" style="background:#0d0d12;border:1px solid rgba(34,211,238,0.25);border-radius:14px;overflow:hidden;max-height:160px;overflow-y:auto;"></div>
+    </div>
+
     <div class="flex gap-2">
 
-      <input type="text" id="comment-input" placeholder="Add a comment..." maxlength="200" class="flex-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-sm outline-none focus:border-cyan-400/50 transition-colors" />
+      <input type="text" id="comment-input" placeholder="Add a comment... (type @ to mention)" maxlength="220" class="flex-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-sm outline-none focus:border-cyan-400/50 transition-colors"
+        oninput="handleMentionInput(this)"
+        onkeydown="handleMentionKey(event)" />
 
       <button onclick="submitComment()" class="btn-press bg-cyan-400 text-black font-display font-black px-4 rounded-2xl text-xs uppercase">Send</button>
 
@@ -1320,10 +1327,105 @@
     document.getElementById('comment-input').focus();
   }
 
+  // ── @Mention helpers ────────────────────────────────────
+  function renderMentions(text) {
+    return text.replace(/@([a-z0-9_]+)/gi, '<span onclick="openCommentUserProfile(\'$1\')" style="color:#22d3ee;font-weight:700;cursor:pointer;">@$1</span>');
+  }
+
+  function extractMentions(text) {
+    const matches = text.match(/@([a-z0-9_]+)/gi) || [];
+    return [...new Set(matches.map(m => m.slice(1).toLowerCase()))];
+  }
+
+  let _mentionQuery = null;
+  let _mentionSelectedIdx = -1;
+  let _mentionResults = [];
+
+  async function handleMentionInput(input) {
+    const val = input.value;
+    const cursor = input.selectionStart;
+    const textBefore = val.slice(0, cursor);
+    const match = textBefore.match(/@([a-z0-9_]*)$/i);
+    if (!match) { closeMentionDropdown(); return; }
+    const query = match[1];
+    _mentionQuery = query;
+    if (query.length < 1) { closeMentionDropdown(); return; }
+    const { data } = await sb.from('profiles').select('username').ilike('username', `${query}%`).limit(6);
+    _mentionResults = (data||[]).map(p => p.username);
+    if (!_mentionResults.length) { closeMentionDropdown(); return; }
+    _mentionSelectedIdx = -1;
+    renderMentionDropdown(_mentionResults);
+  }
+
+  function renderMentionDropdown(users) {
+    const dropdown = document.getElementById('mention-dropdown');
+    const list = document.getElementById('mention-list');
+    list.innerHTML = users.map((u, i) => `
+      <div id="mention-opt-${i}" onclick="insertMention('${u}')"
+        style="display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;transition:background 0.15s;${i===_mentionSelectedIdx?'background:rgba(34,211,238,0.12);':''}"
+        onmouseenter="this.style.background='rgba(34,211,238,0.09)'"
+        onmouseleave="this.style.background='${i===_mentionSelectedIdx?'rgba(34,211,238,0.12)':'transparent'}'">
+        <div style="width:26px;height:26px;border-radius:50%;background:rgba(34,211,238,0.12);border:1.5px solid rgba(34,211,238,0.3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:900;font-size:11px;color:#22d3ee;flex-shrink:0;">${u[0].toUpperCase()}</div>
+        <span style="font-size:12px;color:rgba(255,255,255,0.85);font-weight:600;">@${u}</span>
+      </div>`).join('');
+    dropdown.style.display = 'block';
+  }
+
+  function closeMentionDropdown() {
+    document.getElementById('mention-dropdown').style.display = 'none';
+    _mentionResults = [];
+    _mentionSelectedIdx = -1;
+    _mentionQuery = null;
+  }
+
+  function insertMention(username) {
+    const input = document.getElementById('comment-input');
+    const val = input.value;
+    const cursor = input.selectionStart;
+    const textBefore = val.slice(0, cursor).replace(/@([a-z0-9_]*)$/i, `@${username} `);
+    input.value = textBefore + val.slice(cursor);
+    input.focus();
+    const newCursor = textBefore.length;
+    input.setSelectionRange(newCursor, newCursor);
+    closeMentionDropdown();
+  }
+
+  function handleMentionKey(e) {
+    if (document.getElementById('mention-dropdown').style.display === 'none') return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      _mentionSelectedIdx = Math.min(_mentionSelectedIdx + 1, _mentionResults.length - 1);
+      renderMentionDropdown(_mentionResults);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      _mentionSelectedIdx = Math.max(_mentionSelectedIdx - 1, 0);
+      renderMentionDropdown(_mentionResults);
+    } else if (e.key === 'Enter' && _mentionSelectedIdx >= 0) {
+      e.preventDefault();
+      insertMention(_mentionResults[_mentionSelectedIdx]);
+    } else if (e.key === 'Escape') {
+      closeMentionDropdown();
+    }
+  }
+  // ────────────────────────────────────────────────────────
+
   function cancelReply() {
     replyingTo = null;
     document.getElementById('reply-banner').style.display = 'none';
     document.getElementById('comment-input').placeholder = 'Add a comment...';
+  }
+
+  // Open a user's profile from a comment — looks up user_id by username
+  async function openCommentUserProfile(username) {
+    const { data: profile } = await sb.from('profiles').select('id').eq('username', username).single();
+    if (profile?.id) {
+      document.getElementById('comments-modal').classList.remove('open');
+      closeMentionDropdown();
+      cancelReply();
+      await openUserProfile(profile.id);
+    } else {
+      toast('User not found', 'error');
+    }
   }
 
   async function loadComments() {
@@ -1336,6 +1438,20 @@
 
     if (!comments?.length) { list.innerHTML = '<div class="text-white/20 text-xs text-center py-4">No comments yet. Be first!</div>'; return; }
 
+    // Fetch avatars for commenters
+    const commenterIds = [...new Set((comments).map(c=>c.user_id).filter(Boolean))];
+    const commentAvatarMap = {};
+    if (commenterIds.length) {
+      const { data: cProfiles } = await sb.from('profiles').select('id,avatar_url').in('id', commenterIds);
+      (cProfiles||[]).forEach(p => { commentAvatarMap[p.id] = p.avatar_url || null; });
+    }
+
+    const avatarHtml = (c, size=32, fontSize='0.75rem') => {
+      const av = commentAvatarMap[c.user_id];
+      if (av) return `<img src="${av}" onclick="openCommentUserProfile('${c.username}')" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:2px solid rgba(34,211,238,0.3);flex-shrink:0;cursor:pointer;" />`;
+      return `<div class="av" onclick="openCommentUserProfile('${c.username}')" style="width:${size}px;height:${size}px;font-size:${fontSize};flex-shrink:0;cursor:pointer;">${(c.username||'?')[0].toUpperCase()}</div>`;
+    };
+
     // Separate top-level comments and replies
     const topLevel = comments.filter(c => !c.reply_to);
     const replies = comments.filter(c => c.reply_to);
@@ -1344,24 +1460,24 @@
       const commentReplies = replies.filter(r => r.reply_to === c.id);
       const repliesHtml = commentReplies.map(r => `
         <div class="flex items-start gap-2 mt-2 ml-4 pl-3" style="border-left:2px solid rgba(34,211,238,0.2);">
-          <div class="av" style="width:26px;height:26px;font-size:0.65rem;flex-shrink:0;">${(r.username||'?')[0].toUpperCase()}</div>
+          ${avatarHtml(r, 26, '0.65rem')}
           <div class="glass px-3 py-2 rounded-2xl flex-1" style="border:1px solid rgba(34,211,238,0.15);">
-            <p class="text-[10px] font-bold text-cyan-400">@${r.username||'unknown'}</p>
-            <p class="text-xs text-white/70 mt-0.5">${escapeHtml(r.content)}</p>
+            <p class="text-[10px] font-bold text-cyan-400" onclick="openCommentUserProfile('${r.username}')" style="cursor:pointer;display:inline-block;">@${r.username||'unknown'}</p>
+            <p class="text-xs text-white/70 mt-0.5">${renderMentions(escapeHtml(r.content))}</p>
             <p class="text-[8px] text-white/20 mt-1 uppercase tracking-widest">${timeAgo(r.created_at)}</p>
           </div>
         </div>`).join('');
 
       return `
       <div class="flex items-start gap-2">
-        <div class="av" style="width:32px;height:32px;font-size:0.75rem;flex-shrink:0;">${(c.username||'?')[0].toUpperCase()}</div>
+        ${avatarHtml(c, 32, '0.75rem')}
         <div class="flex-1">
           <div class="glass px-3 py-2 rounded-2xl" style="border:1px solid rgba(34,211,238,0.15);">
             <div style="display:flex;align-items:center;justify-content:space-between;">
-              <p class="text-[10px] font-bold text-cyan-400">@${c.username||'unknown'}</p>
+              <p class="text-[10px] font-bold text-cyan-400" onclick="openCommentUserProfile('${c.username}')" style="cursor:pointer;">@${c.username||'unknown'}</p>
               <button onclick="setReply('${c.id}','${c.username}')" style="font-size:8px;color:rgba(255,255,255,0.3);background:none;border:none;cursor:pointer;text-transform:uppercase;letter-spacing:0.1em;padding:2px 6px;border-radius:8px;transition:color 0.2s;" onmouseenter="this.style.color='#22d3ee'" onmouseleave="this.style.color='rgba(255,255,255,0.3)'">↩ Reply</button>
             </div>
-            <p class="text-xs text-white/70 mt-0.5">${escapeHtml(c.content)}</p>
+            <p class="text-xs text-white/70 mt-0.5">${renderMentions(escapeHtml(c.content))}</p>
             <p class="text-[8px] text-white/20 mt-1 uppercase tracking-widest">${timeAgo(c.created_at)}</p>
           </div>
           ${repliesHtml}
@@ -1387,7 +1503,6 @@
     if (replyingTo?.commentId) commentData.reply_to = replyingTo.commentId;
     const { error: insertErr } = await sb.from('comments').insert(commentData);
     if (insertErr && replyingTo?.commentId) {
-      // reply_to column may not exist yet — fallback insert without it
       const { reply_to, ...baseData } = commentData;
       await sb.from('comments').insert(baseData);
     }
@@ -1414,6 +1529,25 @@
         });
 
       }
+
+      // ── @mention notifications ───────────────────────────
+      const mentionedNames = extractMentions(content);
+      if (mentionedNames.length) {
+        const { data: mentionedProfiles } = await sb.from('profiles')
+          .select('id,username')
+          .in('username', mentionedNames);
+        for (const mp of (mentionedProfiles||[])) {
+          if (mp.id === currentUser.id) continue; // don't notify yourself
+          if (mp.id === item?.user_id) continue;  // post owner already notified above
+          await sb.from('notifications').insert({
+            user_id: mp.id, type: 'mention', from_user_id: currentUser.id,
+            from_username: myProfile?.username,
+            text: `mentioned you: ${content.length>40?content.slice(0,40)+'…':content}`,
+            is_read: false
+          }).then(()=>{}).catch(()=>{});
+        }
+      }
+      // ────────────────────────────────────────────────────
 
     } catch(e) {}
 
@@ -2317,7 +2451,7 @@
 
     list.innerHTML = notifs.map((n,i) => {
 
-      const icon = n.type==='like'?'❤️':n.type==='comment'?'💬':n.type==='friend_request'?'👋':n.type==='friend_accepted'?'✅':n.type==='message'?'📩':'🔔';
+      const icon = n.type==='like'?'❤️':n.type==='comment'?'💬':n.type==='friend_request'?'👋':n.type==='friend_accepted'?'✅':n.type==='message'?'📩':n.type==='mention'?'@':'🔔';
 
       const unread = !n.is_read;
 
@@ -2349,7 +2483,7 @@
 
       }
 
-      const labelText = n.type==='like'?'liked your post':n.type==='comment'?'commented on your post':n.type==='friend_request'?'sent you a friend request':n.type==='friend_accepted'?'accepted your friend request':n.type==='message'?'sent you a message':'';
+      const labelText = n.type==='like'?'liked your post':n.type==='comment'?'commented on your post':n.type==='friend_request'?'sent you a friend request':n.type==='friend_accepted'?'accepted your friend request':n.type==='message'?'sent you a message':n.type==='mention'?'mentioned you in a comment':'';
 
       return `
 
@@ -2448,7 +2582,7 @@
           document.getElementById('notif-dot') && document.getElementById('notif-dot').classList.remove('hidden');
         }
 
-        const msg = n.type==='like'?`❤️ @${n.from_username} liked your post`:n.type==='comment'?`💬 @${n.from_username} commented on your post`:n.type==='friend_request'?`👋 @${n.from_username} sent you a friend request`:n.type==='friend_accepted'?`✅ @${n.from_username} accepted your friend request`:n.type==='message'?`📩 @${n.from_username}: ${n.text}`:'🔔 New notification';
+        const msg = n.type==='like'?`❤️ @${n.from_username} liked your post`:n.type==='comment'?`💬 @${n.from_username} commented on your post`:n.type==='friend_request'?`👋 @${n.from_username} sent you a friend request`:n.type==='friend_accepted'?`✅ @${n.from_username} accepted your friend request`:n.type==='message'?`📩 @${n.from_username}: ${n.text}`:n.type==='mention'?`@ @${n.from_username} mentioned you`:'🔔 New notification';
 
         toast(msg, n.type==='friend_request'||n.type==='friend_accepted' ? 'success' : 'info');
 
